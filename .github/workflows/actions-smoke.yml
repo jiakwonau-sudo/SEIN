@@ -1,0 +1,9 @@
+name: SEIN Actions smoke
+on:
+  push:
+    branches: [main]
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "SEIN_ACTIONS_OK"
