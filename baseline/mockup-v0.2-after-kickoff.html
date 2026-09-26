@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>세인코퍼레이션 내부 관리 시스템 (Mockup v0.2)</title>
+<style>
+:root{
+  --bg:#f4f5f7; --surface:#ffffff; --surface-2:#fafbfc;
+  --line:#e3e6ea; --line-strong:#cdd3da;
+  --ink:#171a1f; --ink-2:#4c5560; --ink-3:#8a939f;
+  --brand:#1b4f9c; --brand-2:#2f6fd0; --brand-soft:#eaf1fb;
+  --ok:#0f8a53; --ok-soft:#e6f5ed;
+  --warn:#b5730a; --warn-soft:#fdf3e2;
+  --danger:#c1362f; --danger-soft:#fdeceb;
+  --violet:#6b4fbb; --violet-soft:#f0ecfb;
+  --radius:8px; --radius-lg:12px;
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.06);
+  --shadow-lg:0 10px 40px rgba(16,24,40,.18);
+  --mono:"SFMono-Regular",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",system-ui,sans-serif;
+  background:var(--bg); color:var(--ink);
+  font-size:14px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+a{color:var(--brand-2)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#c8cdd4;border-radius:8px;border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ── 목업 배너 ───────────────────────── */
+.mock-flag{
+  background:linear-gradient(90deg,#1b4f9c,#2f6fd0);color:#fff;
+  font-size:12px;padding:6px 16px;display:flex;gap:10px;align-items:center;justify-content:center;letter-spacing:-.2px
+}
+.mock-flag b{font-weight:700}
+.mock-flag span{opacity:.8}
+
+/* ── 상단 헤더 ───────────────────────── */
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:60
+}
+.topbar-row{display:flex;align-items:center;gap:16px;padding:0 20px;height:56px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.5px;font-size:15px;white-space:nowrap}
+.logo .mark{
+  width:28px;height:28px;border-radius:7px;background:var(--brand);color:#fff;
+  display:grid;place-items:center;font-size:12px;font-weight:800
+}
+.logo small{display:block;font-size:10px;color:var(--ink-3);font-weight:600;letter-spacing:0}
+.cats{display:flex;align-items:center;gap:4px;margin-left:12px;flex:1;overflow-x:auto}
+.cat{
+  padding:7px 14px;border-radius:999px;font-size:13.5px;font-weight:600;color:var(--ink-2);
+  white-space:nowrap;border:1px solid transparent;flex-shrink:0
+}
+.cat:hover{background:var(--surface-2);color:var(--ink)}
+.cat.on{background:var(--brand);color:#fff}
+.cat.ghost{color:var(--ink-3);border:1px dashed var(--line-strong)}
+.cat-add{
+  flex-shrink:0;padding:6px 10px;border-radius:999px;border:1px dashed var(--line-strong);
+  color:var(--ink-3);font-size:12.5px;font-weight:600
+}
+.cat-add:hover{border-color:var(--brand-2);color:var(--brand-2)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.role-switch{
+  display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:999px;padding:3px
+}
+.role-switch button{padding:5px 11px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--ink-3)}
+.role-switch button.on{background:var(--ink);color:#fff}
+.avatar{
+  width:32px;height:32px;border-radius:50%;background:var(--brand-soft);color:var(--brand);
+  display:grid;place-items:center;font-weight:700;font-size:12.5px;border:1px solid #d6e3f7
+}
+
+/* ── 레이아웃 ────────────────────────── */
+.shell{display:flex;min-height:calc(100vh - 85px)}
+.side{
+  width:212px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--line);
+  padding:14px 10px;position:sticky;top:85px;height:calc(100vh - 85px);overflow-y:auto
+}
+.side-group{margin-bottom:16px}
+.side-label{font-size:10.5px;font-weight:800;color:var(--ink-3);letter-spacing:.6px;padding:0 10px 6px}
+.nav{
+  display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border-radius:var(--radius);
+  font-size:13.5px;font-weight:600;color:var(--ink-2);text-align:left;margin-bottom:1px
+}
+.nav:hover{background:var(--surface-2);color:var(--ink)}
+.nav.on{background:var(--brand-soft);color:var(--brand)}
+.nav .ic{width:16px;text-align:center;font-size:14px;opacity:.85}
+.nav .lock{margin-left:auto;font-size:10px;color:var(--ink-3)}
+.nav .cnt{margin-left:auto;font-size:11px;background:var(--line);color:var(--ink-2);border-radius:999px;padding:1px 7px;font-weight:700}
+.nav.on .cnt{background:#d6e3f7;color:var(--brand)}
+.main{flex:1;min-width:0;padding:22px 26px 60px}
+
+/* ── 페이지 헤더 ─────────────────────── */
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.page-title{font-size:21px;font-weight:800;letter-spacing:-.5px;margin:0}
+.page-sub{color:var(--ink-3);font-size:12.5px;margin-top:3px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ── 버튼 ────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius);
+  font-size:13px;font-weight:600;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-2)
+}
+.btn:hover{background:var(--surface-2);border-color:#b9c0c9}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:#173f7d}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.ok:hover{filter:brightness(.93)}
+.btn.danger{color:var(--danger);border-color:#f0c4c1}
+.btn.danger:hover{background:var(--danger-soft)}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.xs{padding:3px 8px;font-size:11.5px;border-radius:6px}
+
+/* ── 카드 ────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow)}
+.card-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-title{font-size:14px;font-weight:700;margin:0;letter-spacing:-.2px}
+.card-body{padding:16px}
+.grid{display:grid;gap:14px}
+
+/* ── KPI ─────────────────────────────── */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:15px 16px;box-shadow:var(--shadow)}
+.kpi .k-label{font-size:12px;color:var(--ink-3);font-weight:600;display:flex;align-items:center;gap:6px}
+.kpi .k-value{font-size:24px;font-weight:800;letter-spacing:-1px;margin-top:6px;font-variant-numeric:tabular-nums}
+.kpi .k-value .unit{font-size:13px;font-weight:600;color:var(--ink-2);margin-left:2px;letter-spacing:0}
+.kpi .k-delta{font-size:11.5px;font-weight:700;margin-top:5px}
+.k-delta.up{color:var(--ok)} .k-delta.down{color:var(--danger)} .k-delta.flat{color:var(--ink-3)}
+
+/* ── 배지 ────────────────────────────── */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;
+  font-size:11.5px;font-weight:700;line-height:1.7;white-space:nowrap
+}
+.b-blue{background:var(--brand-soft);color:var(--brand)}
+.b-green{background:var(--ok-soft);color:var(--ok)}
+.b-amber{background:var(--warn-soft);color:var(--warn)}
+.b-red{background:var(--danger-soft);color:var(--danger)}
+.b-violet{background:var(--violet-soft);color:var(--violet)}
+.b-gray{background:#eef0f3;color:var(--ink-2)}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+
+/* ── 테이블 ──────────────────────────── */
+.tbl-wrap{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.tbl th{
+  text-align:left;font-size:11.5px;font-weight:700;color:var(--ink-3);letter-spacing:.2px;
+  padding:9px 12px;border-bottom:1px solid var(--line);background:var(--surface-2);white-space:nowrap
+}
+table.tbl td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.tbl tbody tr:hover{background:#fafcff}
+table.tbl tbody tr.clickable{cursor:pointer}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-3)}
+.strong{font-weight:700}
+.nowrap{white-space:nowrap}
+
+/* ── 필터 바 ─────────────────────────── */
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.filters>span{white-space:nowrap}
+.field{
+  display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line-strong);
+  border-radius:var(--radius);padding:0 10px;height:34px
+}
+.field input,.field select{border:none;outline:none;background:none;font-size:13px;min-width:0}
+.field input::placeholder{color:var(--ink-3)}
+.field .ic{color:var(--ink-3);font-size:13px}
+.chip{
+  padding:5px 11px;border-radius:999px;border:1px solid var(--line-strong);background:var(--surface);
+  font-size:12.5px;font-weight:600;color:var(--ink-2);white-space:nowrap;flex-shrink:0
+}
+.chip:hover{border-color:var(--brand-2);color:var(--brand-2)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.seg{display:flex;border:1px solid var(--line-strong);border-radius:var(--radius);overflow:hidden}
+.seg button{padding:7px 12px;font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--surface)}
+.seg button+button{border-left:1px solid var(--line-strong)}
+.seg button.on{background:var(--brand-soft);color:var(--brand)}
+
+/* ── 설비 카드 그리드 ────────────────── */
+.eq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:14px}
+.eq{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:.15s}
+.eq:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:#c6d5ea}
+.eq-thumb{height:132px;position:relative;display:grid;place-items:center;color:#fff;font-weight:800;letter-spacing:-.5px}
+.eq-thumb .ph{font-size:34px;opacity:.55}
+.eq-thumb .tag-stage{position:absolute;left:10px;bottom:10px}
+.eq-thumb .tag-cnt{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.5);color:#fff;font-size:11px;border-radius:6px;padding:2px 7px;font-weight:700}
+.eq-body{padding:12px 13px}
+.eq-model{font-weight:800;font-size:14px;letter-spacing:-.3px}
+.eq-no{font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin-top:1px}
+.eq-memo{
+  margin-top:9px;font-size:12px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line);
+  border-radius:6px;padding:7px 9px;line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden
+}
+.eq-memo .mt{font-size:10.5px;color:var(--ink-3);font-weight:700;display:block;margin-bottom:2px}
+.eq-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:6px}
+.eq-price{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+
+/* ── 모달 ────────────────────────────── */
+.overlay{
+  position:fixed;inset:0;background:rgba(16,24,40,.45);z-index:100;
+  display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;
+  backdrop-filter:blur(2px)
+}
+.overlay.open{display:flex}
+.modal{
+  background:var(--surface);border-radius:14px;width:100%;max-width:880px;box-shadow:var(--shadow-lg);
+  animation:pop .16s ease-out
+}
+.modal.wide{max-width:1060px}
+.modal.narrow{max-width:520px}
+@keyframes pop{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.modal-title{font-size:16.5px;font-weight:800;letter-spacing:-.4px;margin:0}
+.modal-sub{font-size:12px;color:var(--ink-3);margin-top:2px}
+.modal-body{padding:18px 20px;max-height:66vh;overflow-y:auto}
+.modal-foot{padding:13px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;background:var(--surface-2);border-radius:0 0 14px 14px}
+.x{width:30px;height:30px;border-radius:7px;color:var(--ink-3);font-size:17px;display:grid;place-items:center}
+.x:hover{background:var(--surface-2);color:var(--ink)}
+
+/* ── 탭 ──────────────────────────────── */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
+.tab{padding:9px 14px;font-size:13px;font-weight:700;color:var(--ink-3);border-bottom:2px solid transparent;white-space:nowrap}
+.tab:hover{color:var(--ink-2)}
+.tab.on{color:var(--brand);border-bottom-color:var(--brand)}
+
+/* ── 폼 ──────────────────────────────── */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.f{display:flex;flex-direction:column;gap:5px}
+.f label{font-size:11.5px;font-weight:700;color:var(--ink-3)}
+.f input,.f select,.f textarea{
+  border:1px solid var(--line-strong);border-radius:var(--radius);padding:8px 10px;font-size:13px;
+  background:var(--surface);outline:none;width:100%
+}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--brand-2);box-shadow:0 0 0 3px rgba(47,111,208,.12)}
+.f .hint{font-size:11px;color:var(--ink-3)}
+.f input[readonly]{background:var(--surface-2);color:var(--ink-2)}
+
+/* ── 메모 에디터 ─────────────────────── */
+.editor{border:1px solid var(--line-strong);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.editor-bar{display:flex;align-items:center;gap:3px;padding:6px 8px;border-bottom:1px solid var(--line);background:var(--surface-2);flex-wrap:wrap}
+.eb{width:28px;height:28px;border-radius:6px;display:grid;place-items:center;font-size:13px;color:var(--ink-2);font-weight:700}
+.eb:hover{background:#e9edf2;color:var(--ink)}
+.eb.wide{width:auto;padding:0 9px;font-size:12px;gap:4px;display:flex}
+.eb-sep{width:1px;height:18px;background:var(--line-strong);margin:0 4px}
+.editor-area{
+  min-height:230px;padding:14px 16px;outline:none;font-size:13.5px;line-height:1.75;
+}
+.editor-area:focus{background:#fffefb}
+.editor-area h4{margin:14px 0 6px;font-size:13px;color:var(--brand);letter-spacing:-.2px}
+.editor-area h4:first-child{margin-top:0}
+.editor-area ul{margin:4px 0;padding-left:20px}
+.editor-area .spec-line{display:flex;gap:8px;padding:2px 0}
+.editor-area .spec-line b{min-width:96px;color:var(--ink-2);font-weight:700;font-size:12.5px}
+.drop-zone{
+  border-top:1px dashed var(--line-strong);padding:10px 14px;font-size:12px;color:var(--ink-3);
+  background:var(--surface-2);display:flex;align-items:center;gap:8px;flex-wrap:wrap
+}
+.drop-zone.hot{background:var(--brand-soft);color:var(--brand);border-color:var(--brand-2)}
+.att{
+  display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line-strong);
+  border-radius:6px;padding:4px 8px;font-size:11.5px;font-weight:600;color:var(--ink-2)
+}
+.att .sz{color:var(--ink-3);font-weight:500}
+.att .rm{color:var(--ink-3);font-size:13px;line-height:1}
+.embed{
+  border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;gap:10px;align-items:center;
+  background:var(--surface-2);margin:8px 0;max-width:400px
+}
+.embed .thumb{width:88px;height:52px;border-radius:5px;background:#111;color:#fff;display:grid;place-items:center;font-size:17px;flex-shrink:0}
+.embed .t{font-size:12.5px;font-weight:700}
+.embed .u{font-size:11px;color:var(--ink-3);word-break:break-all}
+
+/* ── 사진 갤러리 ─────────────────────── */
+.stage-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.ph-card{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface);position:relative}
+.ph-card .im{height:96px;display:grid;place-items:center;color:#fff;font-size:22px;opacity:.9}
+.ph-card .meta{padding:7px 8px;font-size:11px;color:var(--ink-3);display:flex;justify-content:space-between;align-items:center;gap:4px}
+.ph-card input[type=checkbox]{position:absolute;top:7px;left:7px;width:16px;height:16px;accent-color:var(--brand);cursor:pointer}
+.dl-note{font-size:11.5px;color:var(--warn);background:var(--warn-soft);border:1px solid #f3e0bd;border-radius:6px;padding:7px 10px;margin-top:10px}
+
+.lock-note{
+  display:flex;gap:10px;align-items:flex-start;background:var(--violet-soft);border:1px solid #ddd4f5;
+  border-radius:var(--radius);padding:11px 13px;font-size:12.5px;color:#4a3785;margin-bottom:14px
+}
+.lock-note b{color:var(--violet)}
+.denied{text-align:center;padding:72px 20px;color:var(--ink-3)}
+.denied .lk{font-size:40px;margin-bottom:12px;opacity:.5}
+.denied h3{margin:0 0 6px;color:var(--ink);font-size:16px}
+
+/* ── 캘린더 ──────────────────────────── */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--line);border-top:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.cal .dh{background:var(--surface-2);font-size:11px;font-weight:700;color:var(--ink-3);text-align:center;padding:7px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.cal .dc{min-height:96px;background:var(--surface);border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px 7px}
+.cal .dc.dim{background:var(--surface-2);color:var(--ink-3)}
+.cal .dn{font-size:11.5px;font-weight:700;color:var(--ink-2)}
+.cal .dc.today .dn{background:var(--brand);color:#fff;border-radius:50%;width:20px;height:20px;display:grid;place-items:center;font-size:11px}
+.ev{font-size:10.5px;font-weight:700;border-radius:4px;padding:2px 5px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── 기타 ────────────────────────────── */
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:var(--ink);color:#fff;
+  padding:11px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:200;opacity:0;
+  transition:.2s;pointer-events:none;box-shadow:var(--shadow-lg);max-width:80vw;text-align:center
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.empty{text-align:center;padding:56px 20px;color:var(--ink-3)}
+.empty .ic{font-size:36px;opacity:.4;margin-bottom:10px}
+.empty h3{margin:0 0 6px;font-size:15px;color:var(--ink-2)}
+.split{display:grid;grid-template-columns:1fr 340px;gap:14px;align-items:start}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2);align-items:center}
+.legend i{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:5px}
+.row-red{background:#fef7f6}
+.row-gray{background:#f7f8f9;color:var(--ink-3)}
+.row-amber{background:#fffbf3}
+.bar{height:7px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:4px;background:var(--brand-2)}
+.note-input{width:100%;border:1px solid var(--line-strong);border-radius:var(--radius);padding:9px 11px;font-size:13px;outline:none;resize:vertical;min-height:56px}
+.note-input:focus{border-color:var(--brand-2)}
+.tl{position:relative;padding-left:18px}
+.tl:before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tl-item{position:relative;padding:0 0 14px}
+.tl-item:before{content:"";position:absolute;left:-17px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--brand-2);border:2px solid #fff;box-shadow:0 0 0 1px var(--line-strong)}
+.tl-item .w{font-size:11px;color:var(--ink-3);font-weight:700}
+.tl-item .c{font-size:12.5px;color:var(--ink-2);margin-top:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;line-height:1.6}
+.pick-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius);margin-bottom:6px;cursor:pointer}
+.pick-row:hover{border-color:var(--brand-2);background:#fafcff}
+.pick-row.on{border-color:var(--brand);background:var(--brand-soft)}
+.pick-row input{accent-color:var(--brand);width:15px;height:15px}
+.copybox{
+  font-family:var(--mono);font-size:11.5px;background:#0f1621;color:#c9e0ff;border-radius:var(--radius);
+  padding:12px;max-height:180px;overflow:auto;white-space:pre-wrap;word-break:break-all;line-height:1.7
+}
+.stat-line{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.stat-line:last-child{border-bottom:none}
+.stat-line b{font-variant-numeric:tabular-nums}
+.mobile-only{display:none}
+.pill-nav{display:none}
+
+@media(max-width:1080px){ .split{grid-template-columns:1fr} }
+@media(max-width:820px){
+  .side{display:none}
+  .main{padding:16px 14px 60px}
+  .pill-nav{display:flex;gap:6px;overflow-x:auto;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .mobile-only{display:block}
+  .desktop-only{display:none}
+  .eq-grid{grid-template-columns:repeat(auto-fill,minmax(158px,1fr))}
+  .modal-body{max-height:none}
+  .overlay{padding:0}
+  .modal{border-radius:0;min-height:100vh}
+  .modal-foot{border-radius:0;position:sticky;bottom:0}
+  .mock-flag{padding:5px 12px;font-size:11px}
+  .mock-flag span{display:none}
+  .mock-flag:after{content:"v0.2 · 최종 핸드오프 반영 시안 · 실제 데이터 아님";opacity:.85}
+  .topbar{position:static}
+  .topbar-row{height:auto;padding:9px 12px;flex-wrap:wrap;gap:10px}
+  .logo{flex:1}
+  .cats{order:3;flex-basis:100%;margin-left:0;padding-bottom:2px}
+  .cat{padding:6px 12px;font-size:13px}
+  .shell{min-height:0}
+  .page-head{margin-bottom:14px}
+  .page-title{font-size:19px}
+  .kpis{grid-template-columns:1fr 1fr}
+  .kpi .k-value{font-size:20px}
+  .split{grid-template-columns:1fr}
+  .filters{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}
+  .field{flex-shrink:0}
+  .avatar{display:none}
+  .eq-body{padding:11px}
+  .role-switch button{padding:5px 10px;font-size:12px}
+}
+@media(max-width:480px){
+  .eq-grid{grid-template-columns:1fr}
+  .kpis{grid-template-columns:1fr 1fr}
+  .gal{grid-template-columns:1fr 1fr}
+}
+
+/* ── 드라이브(아사히 세이키) ────────────────── */
+.drive{display:grid;grid-template-columns:236px minmax(0,1fr);gap:14px;align-items:start}
+.drive>*{min-width:0}
+.tree{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:10px;box-shadow:var(--shadow);position:sticky;top:100px;max-height:calc(100vh - 130px);overflow:auto}
+.tree-item{display:flex;align-items:center;gap:6px;width:100%;padding:6px 8px;border-radius:6px;font-size:13px;font-weight:600;color:var(--ink-2);text-align:left}
+.tree-item:hover{background:var(--surface-2);color:var(--ink)}
+.tree-item.on{background:var(--brand-soft);color:var(--brand)}
+.tree-item .tw{width:12px;font-size:9px;color:var(--ink-3);flex-shrink:0}
+.tree-item .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crumbs{display:flex;align-items:center;gap:3px;flex-wrap:wrap;font-size:13px;margin-bottom:12px}
+.crumbs button{padding:4px 8px;border-radius:6px;font-weight:700;color:var(--brand);font-size:13px}
+.crumbs button:hover{background:var(--brand-soft)}
+.crumbs button.last{color:var(--ink);pointer-events:none}
+.crumbs .sep{color:var(--ink-3);font-size:11px}
+.drive-drop{border:2px dashed var(--line-strong);border-radius:var(--radius-lg);padding:0;transition:.15s}
+.drive-drop.hot{border-color:var(--brand-2);background:var(--brand-soft)}
+.fi{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;font-size:13px;flex-shrink:0;color:#fff}
+.f-folder{background:#f0b429;color:#7a4f06}
+.f-pdf{background:#c1362f}.f-dwg{background:#0e7490}.f-img{background:#6b4fbb}
+.f-xls{background:#0f8a53}.f-doc{background:#1b4f9c}.f-vid{background:#111}.f-etc{background:#8a939f}
+.name-cell{display:flex;align-items:center;gap:9px;min-width:0}
+.name-cell .t{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:14px;box-shadow:var(--shadow);cursor:pointer;transition:.15s}
+.tile:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:#c6d5ea}
+.tile .fi{width:38px;height:38px;font-size:17px;border-radius:9px;margin-bottom:9px}
+.tile .t{font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile .s{font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.prev-box{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface-2);height:290px;display:grid;place-items:center;text-align:center;color:var(--ink-3)}
+.prev-box .big{font-size:44px;opacity:.45;margin-bottom:10px}
+@media(max-width:820px){ .drive{grid-template-columns:minmax(0,1fr)} .tree{position:static;max-height:none} .crumbs{font-size:12px} }
+</style>
+</head>
+<body>
+<div class="mock-flag">
+  <b>MOCKUP</b><span>세인코퍼레이션 내부 관리 시스템 · Mockup v0.2 · 2026.09.18 최종 핸드오프 반영 · 실제 데이터 아님</span>
+</div>
+
+<header class="topbar">
+  <div class="topbar-row">
+    <div class="logo">
+      <div class="mark">SEIN</div>
+      <div>세인코퍼레이션<small>내부 관리 시스템</small></div>
+    </div>
+    <nav class="cats" id="cats"></nav>
+    <div class="topbar-right">
+      <div class="role-switch" title="권한별 화면 차이 확인용">
+        <button data-role="admin" class="on">대표자</button>
+        <button data-role="staff">담당자</button>
+      </div>
+      <div class="avatar" id="avatarBox">대표</div>
+    </div>
+  </div>
+</header>
+
+<div class="pill-nav" id="pillNav"></div>
+
+<div class="shell">
+  <aside class="side" id="side"></aside>
+  <main class="main" id="main"></main>
+</div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   세인코퍼레이션 내부 관리 시스템 — 목업 v0.2 스크립트
+   ※ 모든 데이터는 시연용 더미이며 서버 연동은 없습니다.
+   ══════════════════════════════════════════════════════════ */
+
+const W = n => (n||0).toLocaleString('ko-KR');
+const 만 = n => W(Math.round(n/10000));
+const $ = (s,r)=> (r||document).querySelector(s);
+const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ── 상태 ─────────────────────────────────────────────── */
+const state = {
+  role:'admin',
+  cat:'used',            // used | asahi | new | calendar
+  page:'dash',           // dash | goods | quote | sales | customer | account | files
+  goodsView:'list',
+  drivePath:[],
+  driveView:'list',
+  goodsFilter:'all',
+  photoStage:'all',
+  sheetYear:'2026',
+  accountView:'dashboard',
+  sel:null,
+};
+
+const CATS = [
+  {id:'used',  name:'중고 설비'},
+  {id:'asahi', name:'아사히 세이키'},
+  {id:'new',   name:'신규 (공란)', ghost:true},
+  {id:'calendar', name:'캘린더'},
+];
+
+const NAVS = [
+  {g:'현황', items:[{id:'dash', ic:'▦', name:'대시보드'}]},
+  {g:'설비', items:[
+    {id:'goods', ic:'▣', name:'상품 관리'},
+    {id:'quote', ic:'₩', name:'견적 관리'},
+  ]},
+  {g:'영업', items:[
+    {id:'sales', ic:'◈', name:'영업 관리'},
+    {id:'customer', ic:'☷', name:'고객 관리'},
+  ]},
+  {g:'관리', items:[
+    {id:'files', ic:'🗂', name:'자료실'},
+    {id:'account', ic:'🔒', name:'회계 관리', admin:true},
+  ]},
+];
+
+/* ── 더미 데이터: 설비 ───────────────────────────────── */
+const STAGES = [
+  {id:'factory', name:'공장',       color:'#6b7280'},
+  {id:'port',    name:'항구 이동',   color:'#0e7490'},
+  {id:'preship', name:'선적 전',     color:'#b5730a'},
+  {id:'shipped', name:'선적 후',     color:'#6b4fbb'},
+  {id:'wh',      name:'창고 입고',   color:'#0f8a53'},
+];
+const stageOf = id => STAGES.find(s=>s.id===id) || STAGES[0];
+
+const MEMO_TEMPLATE = [
+  ['스트로크',''],['공정수',''],['설비 톤수',''],['다이하이트',''],
+  ['슬라이드 면적',''],['제조년도',''],['전압 / 주파수',''],['부속 사양','']
+];
+
+function memoHTML(rows, extra){
+  let h = '<h4>■ 기본 사양 (템플릿 고정)</h4>';
+  rows.forEach(([k,v])=> h += `<div class="spec-line"><b>${k}</b><span>${v||'<span style="color:#8a939f">— 미입력 —</span>'}</span></div>`);
+  if(extra) h += `<h4>■ 추가 메모 (자유 입력)</h4>${extra}`;
+  return h;
+}
+
+const EQUIP = [
+  {
+    id:'EQ-2401', cat:'used', model:'AIDA NC1-200(D)', no:'SEIN-U-2401', ton:200,
+    color:'#1b4f9c', status:'판매확정', buy:38000000, sell:52000000, photos:12,
+    stage:'wh', customer:'대성정밀',
+    memoDate:'08-21', memoPreview:'슬라이드 조정 완료, 클러치 브레이크 라이닝 교체 이력 있음. 다이하이트 확인 필요 — 바이어 요청으로 실측치 재측정 예정.',
+    memo: memoHTML([['스트로크','200mm'],['공정수','1공정'],['설비 톤수','200 TON'],['다이하이트','380mm'],['슬라이드 면적','1,100 × 700'],['제조년도','2009'],['전압 / 주파수','220V / 60Hz'],['부속 사양','에어쿠션, 오버런 감지']],
+      '<ul><li>슬라이드 조정 완료 / 클러치 브레이크 라이닝 <b>교체 이력 있음(2023)</b></li><li>다이하이트 실측치 재측정 예정 — 바이어(대성정밀) 요청</li><li>도장 상태 양호, 컨트롤 판넬 교체함</li></ul>'),
+    atts:[{n:'NC1-200D_기술자료.pdf',s:'12.4MB'},{n:'레이아웃도면.dwg',s:'28.2MB'}],
+    video:'https://youtu.be/nc1-200d-demo',
+  },
+  {
+    id:'EQ-2402', cat:'used', model:'KOMATSU E2G-300', no:'SEIN-U-2402', ton:300,
+    color:'#0f8a53', status:'영업중', buy:52000000, sell:0, photos:8,
+    stage:'preship', customer:'한신금속',
+    memoDate:'08-23', memoPreview:'무빙볼스터 포함. 사이드 프레임 도색 필요. 컨트롤러 정상 작동 확인 (08/22 현장 테스트).',
+    memo: memoHTML([['스트로크','250mm'],['공정수','1공정'],['설비 톤수','300 TON'],['다이하이트','450mm'],['슬라이드 면적','1,500 × 900'],['제조년도','2012'],['전압 / 주파수','380V / 60Hz'],['부속 사양','무빙볼스터, 다이쿠션']],
+      '<ul><li>무빙볼스터 포함 / 사이드 프레임 <b>도색 필요</b></li><li>컨트롤러 정상 작동 확인 (08/22 현장 테스트)</li></ul>'),
+    atts:[{n:'E2G-300_사양서.pdf',s:'4.1MB'}], video:'',
+  },
+  {
+    id:'EQ-2403', cat:'used', model:'AMADA TP-80C', no:'SEIN-U-2403', ton:80,
+    color:'#b5730a', status:'재고', buy:14500000, sell:0, photos:6,
+    stage:'factory', customer:'',
+    memoDate:'08-14', memoPreview:'소형 프레스. 금형 미포함. 창고 3열 B구역 보관 중.',
+    memo: memoHTML([['스트로크','120mm'],['공정수','1공정'],['설비 톤수','80 TON'],['다이하이트','280mm'],['슬라이드 면적','700 × 500'],['제조년도','2015'],['전압 / 주파수','220V / 60Hz'],['부속 사양','—']],
+      '<p>소형 프레스. <b>금형 미포함.</b> 창고 3열 B구역 보관 중.</p>'),
+    atts:[], video:'',
+  },
+  {
+    id:'EQ-2404', cat:'asahi', model:'ASAHI SEIKI AP-450 세정기', no:'SEIN-A-1104', ton:0,
+    color:'#6b4fbb', status:'판매확정', buy:26000000, sell:41000000, photos:15,
+    stage:'shipped', customer:'대성정밀',
+    memoDate:'08-20', memoPreview:'3조식 초음파 세정기. 히터 신품 교체. 배관 일체 스테인리스. 국내 반입 후 시운전 필요.',
+    memo: memoHTML([['형식','3조식 초음파 세정기'],['탱크 용량','450L × 3'],['히터','신품 교체 (2026.06)'],['배관','SUS304 일체'],['제조년도','2018'],['전압 / 주파수','380V / 60Hz'],['부속 사양','건조 챔버, 필터 유닛']],
+      '<p>국내 반입 후 <b>시운전 필요</b>. 제조사 매뉴얼 원본 보유.</p>'),
+    atts:[{n:'AP-450_매뉴얼.pdf',s:'22.7MB'},{n:'배관도.dxf',s:'8.9MB'}], video:'https://youtu.be/asahi-ap450-demo',
+  },
+  {
+    id:'EQ-2405', cat:'asahi', model:'ASAHI SEIKI AP-200 세정기', no:'SEIN-A-1105', ton:0,
+    color:'#0e7490', status:'영업중', buy:17000000, sell:0, photos:9,
+    stage:'port', customer:'유진테크',
+    memoDate:'08-19', memoPreview:'2조식. 견적 발송 완료(08/19), 회신 대기 중. 창고 이송 일정 미정.',
+    memo: memoHTML([['형식','2조식 초음파 세정기'],['탱크 용량','200L × 2'],['히터','정상'],['배관','SUS304'],['제조년도','2016'],['전압 / 주파수','220V / 60Hz'],['부속 사양','에어나이프']],
+      '<p>견적 발송 완료(08/19), <b>회신 대기 중</b>. 창고 이송 일정 미정.</p>'),
+    atts:[], video:'',
+  },
+  {
+    id:'EQ-2406', cat:'used', model:'AIDA NC1-110', no:'SEIN-U-2406', ton:110,
+    color:'#c1362f', status:'영업중', buy:21000000, sell:0, photos:5,
+    stage:'factory', customer:'한신금속',
+    memoDate:'08-18', memoPreview:'110톤 소형. 한신금속 3대 패키지 건 중 1대. 단독 판매 시 가격 재산정 필요.',
+    memo: memoHTML([['스트로크','150mm'],['공정수','1공정'],['설비 톤수','110 TON'],['다이하이트','320mm'],['슬라이드 면적','800 × 560'],['제조년도','2011'],['전압 / 주파수','220V / 60Hz'],['부속 사양','에어쿠션']],
+      '<p>한신금속 <b>3대 패키지 건</b> 중 1대. 단독 판매 시 가격 재산정 필요.</p>'),
+    atts:[], video:'',
+  },
+];
+
+/* ── 더미 데이터: 영업 건 ────────────────────────────── */
+const DEALS = [
+  {
+    id:'SL-2608-01', name:'대성정밀 프레스+세정기 패키지', customer:'대성정밀', owner:'서장원',
+    equips:['EQ-2401','EQ-2404'], status:'확정', confirmedAt:'2026-08-20',
+    buy:64000000, plannedSell:95000000, sell:93000000,
+    memos:[
+      {w:'서장원 · 08-12 14:20', c:'1차 방문. 200톤 + 세정기 동시 도입 검토 중. 예산 9,500만 선. 8월 내 결정 희망.'},
+      {w:'김담당 · 08-16 10:05', c:'세정기 시운전 조건 요청. 국내 반입 후 2주 내 시운전 지원 조건으로 협의.'},
+      {w:'서장원 · 08-20 17:40', c:'최종 9,300만 확정. 계약서 발송 완료. 선적은 9월 첫째 주 예정.'},
+    ],
+  },
+  {
+    id:'SL-2608-02', name:'한신금속 프레스 3대 건', customer:'한신금속', owner:'서장원',
+    equips:['EQ-2402','EQ-2406'], status:'진행', confirmedAt:'',
+    buy:73000000, plannedSell:98000000, sell:0,
+    memos:[
+      {w:'서장원 · 08-15 09:30', c:'300톤 1대 + 110톤 2대 문의. 현재 2대만 매칭 가능, 1대 추가 소싱 필요.'},
+      {w:'서장원 · 08-23 16:10', c:'현장 실사 완료. 300톤 도색 조건 요구. 견적 재산정 중 — 도색비 약 250만 반영 예정.'},
+    ],
+  },
+  {
+    id:'SL-2608-03', name:'유진테크 세정기 단독 건', customer:'유진테크', owner:'김담당',
+    equips:['EQ-2405'], status:'진행', confirmedAt:'',
+    buy:17000000, plannedSell:24000000, sell:0,
+    memos:[{w:'김담당 · 08-19 11:00', c:'AP-200 견적 발송. 담당자 휴가로 09/01 이후 회신 예정.'}],
+  },
+];
+
+/* ── 더미 데이터: 매입 진행 ───────────────────────────── */
+const PURCHASES = [
+  {id:'PO-2609-01', name:'KOMATSU E2G-300 매입', amount:52000000, owner:'서장원', status:'진행'},
+  {id:'PO-2609-02', name:'AIDA NC1-110 매입', amount:21000000, owner:'김담당', status:'진행'},
+];
+
+/* ── 더미 데이터: 고객 ───────────────────────────────── */
+const CUSTOMERS = [
+  {co:'대성정밀', p:'김성호', d:'구매팀', t:'부장', tel:'031-555-1204', mail:'sh.kim@daesung-p.co.kr', flag:''},
+  {co:'대성정밀', p:'이재훈', d:'생산기술', t:'과장', tel:'031-555-1211', mail:'jh.lee@daesung-p.co.kr', flag:''},
+  {co:'한신금속', p:'박정우', d:'경영지원', t:'이사', tel:'032-411-8820', mail:'jw.park@hanshin-m.com', flag:''},
+  {co:'한신금속', p:'최민석', d:'설비팀', t:'대리', tel:'032-411-8834', mail:'', flag:'nomail'},
+  {co:'유진테크', p:'정하늘', d:'구매', t:'차장', tel:'051-703-2210', mail:'hn.jung@yujin-tech.kr', flag:''},
+  {co:'삼우기공', p:'오세영', d:'영업', t:'팀장', tel:'055-262-7781', mail:'sy.oh@samwoo-g.co.kr', flag:'block'},
+  {co:'경원산업', p:'윤태식', d:'대표', t:'대표이사', tel:'041-330-5512', mail:'ts.yoon@kw-ind.kr', flag:''},
+  {co:'프론티어금형', p:'강지호', d:'기술', t:'주임', tel:'031-988-4407', mail:'jh.kang@frontier-m.kr', flag:'spam'},
+  {co:'동아프레스', p:'서민아', d:'구매', t:'사원', tel:'053-583-9902', mail:'ma.seo@donga-press.co.kr', flag:''},
+];
+const FLAG = {
+  '':{cls:'', badge:'', label:'정상'},
+  'nomail':{cls:'row-gray', badge:'<span class="badge b-gray">이메일 미등록</span>', label:'이메일 미등록'},
+  'block':{cls:'row-red', badge:'<span class="badge b-red">송신 금지</span>', label:'송신 금지'},
+  'spam':{cls:'row-amber', badge:'<span class="badge b-amber">스팸 처리</span>', label:'스팸 처리'},
+};
+
+/* ── 더미 데이터: 견적 ───────────────────────────────── */
+const QUOTES = [
+  {id:'QT-2608-11', eq:'EQ-2401', kind:'확정(실비)', amt:52000000, date:'2026-08-20', file:'대성정밀_NC1-200D_최종견적.xlsx', by:'서장원'},
+  {id:'QT-2608-12', eq:'EQ-2404', kind:'확정(실비)', amt:41000000, date:'2026-08-20', file:'대성정밀_AP-450_최종견적.xlsx', by:'서장원'},
+  {id:'QT-2608-08', eq:'EQ-2402', kind:'예상(영업)', amt:68000000, date:'2026-08-15', file:'한신금속_E2G-300_1차견적.pdf', by:'서장원'},
+  {id:'QT-2608-09', eq:'EQ-2406', kind:'예상(영업)', amt:29000000, date:'2026-08-15', file:'한신금속_NC1-110_1차견적.pdf', by:'서장원'},
+  {id:'QT-2608-14', eq:'EQ-2405', kind:'예상(영업)', amt:24000000, date:'2026-08-19', file:'유진테크_AP-200_견적.pdf', by:'김담당'},
+];
+
+/* ── 유틸 ────────────────────────────────────────────── */
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._tm); t._tm = setTimeout(()=>t.classList.remove('on'), 2400);
+}
+function openModal(html, cls){
+  const m = $('#modal'); m.className = 'modal ' + (cls||''); m.innerHTML = html;
+  $('#overlay').classList.add('open'); document.body.style.overflow='hidden';
+}
+function closeModal(){ $('#overlay').classList.remove('open'); document.body.style.overflow=''; }
+$('#overlay').addEventListener('mousedown', e=>{ if(e.target.id==='overlay') closeModal(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+
+const eqById = id => EQUIP.find(e=>e.id===id);
+const catEquip = () => EQUIP.filter(e=> state.cat==='used' ? e.cat==='used' : state.cat==='asahi' ? e.cat==='asahi' : false);
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════
+   내비게이션
+   ══════════════════════════════════════════════════════════ */
+function renderCats(){
+  $('#cats').innerHTML = CATS.map(c=>
+    `<button class="cat ${c.ghost?'ghost':''} ${state.cat===c.id?'on':''}" data-cat="${c.id}">${c.name}</button>`
+  ).join('') + `<button class="cat-add" id="catAdd">＋ 카테고리</button>`;
+
+  $$('#cats .cat').forEach(b=> b.onclick = ()=>{
+    state.cat = b.dataset.cat;
+    state.drivePath = [];
+    if(state.cat==='calendar'){ state.page='calendar'; }
+    else if(state.cat==='asahi'){ state.page='goods'; }
+    else if(state.page==='calendar'){ state.page='dash'; }
+    render();
+  });
+  $('#catAdd').onclick = ()=> openModal(`
+    <div class="modal-head"><div><h3 class="modal-title">카테고리 추가</h3>
+    <div class="modal-sub">신규 사업(예: 세정기, 로봇) 추가 시 중고 설비 / 아사히 세이키와 동일한 폴더 구조로 생성됩니다.</div></div>
+    <button class="x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body"><div class="form-grid">
+      <div class="f"><label>카테고리명</label><input placeholder="예: 세정 설비"></div>
+      <div class="f"><label>구조 복사</label><select><option>중고 설비 구조 복사</option><option>아사히 세이키 구조(드라이브형) 복사</option><option>빈 구조로 시작</option></select></div>
+    </div>
+    <div class="f" style="margin-top:12px"><label>설명</label><input placeholder="상단 내비게이션에 노출될 설명 (선택)"></div></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">취소</button>
+    <button class="btn primary" onclick="closeModal();toast('목업입니다 — 실제 카테고리는 생성되지 않습니다')">추가</button></div>`,'narrow');
+}
+
+function renderSide(){
+  const side = $('#side');
+  // 아사히 세이키 = 제품 드라이브 전용 카테고리 (좌측 메뉴 없음)
+  if(state.cat==='asahi'){
+    side.style.display = 'none';
+    side.innerHTML = '';
+    $('#pillNav').innerHTML = '';
+    return;
+  }
+  side.style.display = '';
+  if(state.cat==='calendar'){
+    $('#side').innerHTML = `<div class="side-group"><div class="side-label">캘린더</div>
+      <button class="nav on"><span class="ic">📅</span>월간 일정</button>
+      <button class="nav"><span class="ic">📋</span>선적 일정</button>
+      <button class="nav"><span class="ic">🔔</span>알림 설정</button></div>`;
+    $('#pillNav').innerHTML = '';
+    return;
+  }
+  let h='';
+  NAVS.forEach(g=>{
+    const items = g.items.filter(i=> !(i.admin && state.role!=='admin') || true);
+    h += `<div class="side-group"><div class="side-label">${g.g}</div>`;
+    items.forEach(i=>{
+      const drive = state.cat==='asahi' && i.id==='goods';
+      const name = drive ? '제품 드라이브' : i.name;
+      const ic   = drive ? '🗂' : i.ic;
+      const cnt = drive ? totalFiles(DRIVE)
+        : {goods:catEquip().length, quote:QUOTES.length, sales:DEALS.length, customer:CUSTOMERS.length}[i.id];
+      const lock = i.admin ? `<span class="lock">🔒 대표자</span>` : (cnt!=null?`<span class="cnt">${cnt}</span>`:'');
+      h += `<button class="nav ${state.page===i.id?'on':''}" data-page="${i.id}"><span class="ic">${ic}</span>${name}${lock}</button>`;
+    });
+    h += `</div>`;
+  });
+  $('#side').innerHTML = h;
+  $$('#side .nav[data-page]').forEach(b=> b.onclick = ()=>{ state.page=b.dataset.page; render(); });
+
+  $('#pillNav').innerHTML = NAVS.flatMap(g=>g.items).map(i=>{
+    const nm = (state.cat==='asahi' && i.id==='goods') ? '제품 드라이브' : i.name;
+    return `<button class="chip ${state.page===i.id?'on':''}" data-page="${i.id}">${nm}</button>`;}).join('');
+  $$('#pillNav .chip').forEach(b=> b.onclick=()=>{ state.page=b.dataset.page; render(); });
+}
+
+$$('.role-switch button').forEach(b=> b.onclick = ()=>{
+  state.role = b.dataset.role;
+  $$('.role-switch button').forEach(x=>x.classList.toggle('on', x===b));
+  $('#avatarBox').textContent = state.role==='admin' ? '대표' : '담당';
+  render();
+});
+
+/* ══════════════════════════════════════════════════════════
+   1. 대시보드
+   ══════════════════════════════════════════════════════════ */
+function pageDash(){
+  const list = catEquip();
+  const purchaseOpen = PURCHASES.filter(p=>p.status==='진행');
+  const salesOpen = DEALS.filter(d=>d.status!=='확정');
+  const salesDone = DEALS.filter(d=>d.status==='확정');
+  const purchaseAmt = purchaseOpen.reduce((a,p)=>a+p.amount,0);
+  const plannedAmt = salesOpen.reduce((a,d)=>a+(d.plannedSell||0),0);
+  const actualAmt = salesDone.reduce((a,d)=>a+d.sell,0);
+  const doneBuy = salesDone.reduce((a,d)=>a+d.buy,0);
+  const profit = actualAmt-doneBuy;
+  const catName = CATS.find(c=>c.id===state.cat).name;
+
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">대시보드</h1>
+      <div class="page-sub">${catName} · 매입 진행 / 판매 예정 / 판매 확정을 분리해 표시 · 실제 데이터 아님</div></div>
+    <div class="actions">
+      <div class="seg"><button class="on">이번 달</button><button>분기</button><button>연간</button></div>
+      <button class="btn" onclick="toast('목업 — 엑셀 내려받기는 시연되지 않습니다')">엑셀 내려받기</button>
+    </div>
+  </div>
+
+  <div class="kpis" style="margin-bottom:14px">
+    <div class="kpi"><div class="k-label">매입 진행</div>
+      <div class="k-value">${purchaseOpen.length}<span class="unit">건</span></div>
+      <div class="k-delta flat">진행 금액 ${만(purchaseAmt)}만원</div></div>
+    <div class="kpi"><div class="k-label">판매 진행</div>
+      <div class="k-value">${salesOpen.length}<span class="unit">건</span></div>
+      <div class="k-delta flat">판매 예정가 ${만(plannedAmt)}만원</div></div>
+    <div class="kpi"><div class="k-label">판매 확정</div>
+      <div class="k-value">${salesDone.length}<span class="unit">건</span></div>
+      <div class="k-delta up">실제 판매가 ${만(actualAmt)}만원</div></div>
+    <div class="kpi"><div class="k-label">확정 수익</div>
+      <div class="k-value" style="color:var(--ok)">${만(profit)}<span class="unit">만원</span></div>
+      <div class="k-delta flat">확정 건 기준</div></div>
+    <div class="kpi"><div class="k-label">하나은행 환율</div>
+      <div class="k-value" style="font-size:18px">연동 확인 중</div>
+      <div class="k-delta flat">실제 연동 방식 검토 필요</div></div>
+  </div>
+
+  <div class="split">
+    <div class="grid">
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">영업 현황</h3>
+          <button class="btn sm" data-go="sales">영업 관리에서 보기</button></div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>영업 건</th><th>고객사</th><th>상태</th><th class="num">매입가</th><th class="num">판매 예정가</th><th class="num">실제 판매가</th><th class="num">확정 수익</th></tr></thead>
+          <tbody>${DEALS.map(d=>`
+            <tr class="clickable" data-deal="${d.id}">
+              <td class="strong">${d.name}</td><td>${d.customer}</td>
+              <td>${d.status==='확정'?'<span class="badge b-green">판매 확정</span>':'<span class="badge b-amber">판매 진행</span>'}</td>
+              <td class="num">${만(d.buy)}만</td>
+              <td class="num">${d.plannedSell? 만(d.plannedSell)+'만':'—'}</td>
+              <td class="num">${d.sell? 만(d.sell)+'만':'<span class="muted">—</span>'}</td>
+              <td class="num strong" style="color:${d.sell?'var(--ok)':'var(--ink-3)'}">${d.sell? 만(d.sell-d.buy)+'만':'—'}</td>
+            </tr>`).join('')}</tbody>
+        </table></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">매입 진행</h3><span class="badge b-blue">${purchaseOpen.length}건</span></div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>매입 건</th><th>담당</th><th class="num">진행 금액</th><th>상태</th></tr></thead>
+          <tbody>${purchaseOpen.map(p=>`<tr><td class="strong">${p.name}</td><td class="muted">${p.owner}</td><td class="num">${만(p.amount)}만</td><td><span class="badge b-blue">진행</span></td></tr>`).join('')}</tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">설비 상태 분포</h3><span class="muted" style="font-size:12px">${list.length}대</span></div>
+        <div class="card-body">
+          ${STAGES.map(st=>{
+            const n = list.filter(e=>e.stage===st.id).length;
+            const pct = list.length? n/list.length*100:0;
+            return `<div style="margin-bottom:11px">
+              <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px">
+                <span><span class="dot" style="background:${st.color}"></span> ${st.name}</span><b>${n}대</b></div>
+              <div class="bar"><i style="width:${pct}%;background:${st.color}"></i></div></div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">환율 연동 상태</h3><span class="badge b-amber">확인 필요</span></div>
+        <div class="card-body" style="font-size:12.5px;color:var(--ink-2)">
+          하나은행 기준 환율 제공 방향으로 검토 중입니다. 이 목업에서는 임의 환율 숫자를 표시하지 않으며, 실제 연동 가능 여부와 방식이 확정된 뒤 반영합니다.
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   2. 상품(설비) 관리
+   ══════════════════════════════════════════════════════════ */
+function pageGoods(){
+  const list = catEquip().filter(e=> state.goodsFilter==='all' || e.stage===state.goodsFilter);
+  const all = catEquip();
+
+  const card = e => `
+    <div class="eq" data-eq="${e.id}">
+      <div class="eq-thumb" style="background:linear-gradient(135deg,${e.color},${e.color}bb)">
+        <span class="ph">▤</span>
+        <span class="tag-stage badge" style="background:rgba(255,255,255,.92);color:${stageOf(e.stage).color}">${stageOf(e.stage).name}</span>
+        <span class="tag-cnt">📷 ${e.photos}</span>
+      </div>
+      <div class="eq-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div><div class="eq-model">${e.model}</div><div class="eq-no">${e.no}</div></div>
+          ${e.status==='판매확정'?'<span class="badge b-green">판매확정</span>':e.status==='영업중'?'<span class="badge b-amber">영업중</span>':'<span class="badge b-gray">재고</span>'}
+        </div>
+        <div class="eq-memo"><span class="mt">최신 메모 · ${e.memoDate}</span>${esc(e.memoPreview)}</div>
+        <div class="eq-foot">
+          <span class="muted" style="font-size:11.5px">${e.customer? '고객: '+e.customer : '고객 미지정'}</span>
+          <span class="eq-price">${e.sell? 만(e.sell)+'만' : '<span class="muted" style="font-weight:600">견적 전</span>'}</span>
+        </div>
+      </div>
+    </div>`;
+
+  const rows = list.map(e=>`
+    <tr class="clickable" data-eq="${e.id}">
+      <td><div style="display:flex;gap:10px;align-items:center">
+        <div style="width:38px;height:30px;border-radius:5px;background:linear-gradient(135deg,${e.color},${e.color}bb);flex-shrink:0"></div>
+        <div><div class="strong">${e.model}</div><div class="eq-no">${e.no}</div></div></div></td>
+      <td class="nowrap">${e.ton? e.ton+' TON':'—'}</td>
+      <td><span class="badge" style="background:${stageOf(e.stage).color}1a;color:${stageOf(e.stage).color}">${stageOf(e.stage).name}</span></td>
+      <td style="max-width:340px"><div class="muted" style="display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden">${esc(e.memoPreview)}</div></td>
+      <td class="nowrap muted">${e.memoDate}</td>
+      <td class="num nowrap">${e.sell? 만(e.sell)+'만':'—'}</td>
+      <td>${e.status==='판매확정'?'<span class="badge b-green">판매확정</span>':e.status==='영업중'?'<span class="badge b-amber">영업중</span>':'<span class="badge b-gray">재고</span>'}</td>
+    </tr>`).join('');
+
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">상품 관리</h1>
+      <div class="page-sub">${CATS.find(c=>c.id===state.cat).name} · 전체 ${all.length}대 · 분류 항목은 모델명·설비번호만 고정, 나머지 사양은 메모로 관리</div></div>
+    <div class="actions">
+      <div class="seg"><button class="${state.goodsView==='grid'?'on':''}" data-view="grid">카드</button><button class="${state.goodsView==='list'?'on':''}" data-view="list">목록</button></div>
+      <button class="btn primary" onclick="toast('목업 — 신규 설비 등록 폼은 시연되지 않습니다')">＋ 설비 등록</button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="field" style="min-width:230px"><span class="ic">🔍</span><input placeholder="모델명 · 설비번호 · 메모 내용 검색"></div>
+    <div class="field"><select><option>전체 상태</option><option>재고</option><option>영업중</option><option>판매확정</option></select></div>
+    <span class="muted" style="font-size:12px;margin-left:4px">사진 단계</span>
+    <button class="chip ${state.goodsFilter==='all'?'on':''}" data-stage="all">전체</button>
+    ${STAGES.map(s=>`<button class="chip ${state.goodsFilter===s.id?'on':''}" data-stage="${s.id}">${s.name}</button>`).join('')}
+  </div>
+
+  ${list.length===0 ? `<div class="card"><div class="empty"><div class="ic">▤</div><h3>해당 단계의 설비가 없습니다</h3><p>다른 단계 태그를 선택해 보세요.</p></div></div>`
+    : state.goodsView==='grid'
+      ? `<div class="eq-grid">${list.map(card).join('')}</div>`
+      : `<div class="card"><div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>설비</th><th>톤수</th><th>단계</th><th>최신 메모 미리보기</th><th>메모일</th><th class="num">판매가</th><th>상태</th></tr></thead>
+          <tbody>${rows}</tbody></table></div></div>`}`;
+}
+
+/* ── 설비 상세 모달 ──────────────────────────────────── */
+let modalTab = 'memo';
+function openEquip(id, tab){
+  state.sel = id; modalTab = tab || 'memo';
+  const e = eqById(id); if(!e) return;
+  const q = QUOTES.filter(x=>x.eq===id);
+  const deal = DEALS.find(d=>d.equips.includes(id));
+
+  const tabs = [['memo','메모'],['photo',`사진 (${e.photos})`],['quote',`견적 (${q.length})`],['file',`첨부 (${e.atts.length})`],['info','기본 정보']];
+
+  openModal(`
+    <div class="modal-head">
+      <div>
+        <h3 class="modal-title">${e.model}</h3>
+        <div class="modal-sub"><span style="font-family:var(--mono)">${e.no}</span> · ${e.ton?e.ton+' TON · ':''}${stageOf(e.stage).name}
+          ${deal? ` · 영업 건 <b style="color:var(--brand)">${deal.name}</b>`:''}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        ${e.status==='판매확정'?'<span class="badge b-green">판매확정</span>':e.status==='영업중'?'<span class="badge b-amber">영업중</span>':'<span class="badge b-gray">재고</span>'}
+        <button class="x" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="tabs" id="eqTabs">${tabs.map(([k,n])=>`<button class="tab ${modalTab===k?'on':''}" data-t="${k}">${n}</button>`).join('')}</div>
+      <div id="eqPane"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn danger" onclick="toast('목업 — 삭제되지 않습니다')">삭제</button>
+      <button class="btn" onclick="closeModal()">닫기</button>
+      <button class="btn primary" onclick="toast('저장되었습니다 (목업)')">저장</button>
+    </div>`, 'wide');
+
+  $$('#eqTabs .tab').forEach(b=> b.onclick=()=>{ modalTab=b.dataset.t;
+    $$('#eqTabs .tab').forEach(x=>x.classList.toggle('on',x===b)); paintEqPane(e); });
+  paintEqPane(e);
+}
+
+function paintEqPane(e){
+  const pane = $('#eqPane');
+  if(modalTab==='memo') pane.innerHTML = paneMemo(e), bindEditor(e);
+  else if(modalTab==='photo') pane.innerHTML = panePhoto(e), bindPhoto(e);
+  else if(modalTab==='quote') pane.innerHTML = paneQuote(e);
+  else if(modalTab==='file') pane.innerHTML = paneFile(e);
+  else pane.innerHTML = paneInfo(e);
+}
+
+function paneMemo(e){
+  return `
+  <div class="editor">
+    <div class="editor-bar">
+      <button class="eb" data-cmd="bold" title="굵게"><b>B</b></button>
+      <button class="eb" data-cmd="underline" title="밑줄"><u>U</u></button>
+      <button class="eb" data-cmd="italic" title="기울임"><i>I</i></button>
+      <span class="eb-sep"></span>
+      <select class="eb wide" id="fsz" title="폰트 크기" style="border:none;background:none;outline:none">
+        <option value="2">작게</option><option value="3" selected>보통</option><option value="4">크게</option><option value="5">아주 크게</option>
+      </select>
+      <span class="eb-sep"></span>
+      <button class="eb" data-cmd="insertUnorderedList" title="목록">≡</button>
+      <button class="eb wide" id="linkBtn" title="하이퍼링크">🔗 링크</button>
+      <button class="eb wide" id="tplBtn" title="기본 템플릿 삽입">▤ 템플릿</button>
+      <span class="eb-sep"></span>
+      <button class="eb wide" id="urlBtn" title="동영상 URL 붙여넣기">▶ 영상 URL</button>
+    </div>
+    <div class="editor-area" id="memoArea" contenteditable="true">${e.memo}${e.video?embedHTML(e.video):''}</div>
+    <div class="drop-zone" id="dz">
+      <span>📎 파일을 이 영역에 <b>드래그 앤 드롭</b>하면 첨부됩니다 (파일당 30MB 이하)</span>
+      <span id="attList" style="display:flex;gap:6px;flex-wrap:wrap">${e.atts.map(a=>attHTML(a)).join('')}</span>
+    </div>
+  </div>
+  <div class="muted" style="font-size:11.5px;margin-top:8px">
+    최종 수정: ${e.memoDate} · 서장원 &nbsp;|&nbsp; 목록에서는 이 메모의 앞 2줄이 미리보기로 노출됩니다.
+  </div>`;
+}
+const attHTML = a => `<span class="att">📄 ${esc(a.n)} <span class="sz">${a.s}</span> <span class="rm">✕</span></span>`;
+function embedHTML(url){
+  return `<div class="embed" contenteditable="false">
+    <div class="thumb" style="background:#c1362f">▶</div>
+    <div><div class="t">YouTube 비공개/일부공개 영상 링크</div><div class="u">${esc(url)}</div></div></div>`;
+}
+
+function bindEditor(e){
+  const area = $('#memoArea');
+  $$('#eqPane .eb[data-cmd]').forEach(b=> b.onmousedown = ev=>{ ev.preventDefault(); document.execCommand(b.dataset.cmd,false,null); });
+  $('#fsz').onchange = ev=>{ area.focus(); document.execCommand('fontSize',false,ev.target.value); };
+  $('#linkBtn').onmousedown = ev=>{ ev.preventDefault();
+    const u = prompt('링크 주소를 입력하세요','https://'); if(u) document.execCommand('createLink',false,u); };
+  $('#tplBtn').onmousedown = ev=>{ ev.preventDefault();
+    document.execCommand('insertHTML',false, memoHTML(MEMO_TEMPLATE,'')); toast('기본 사양 템플릿을 삽입했습니다'); };
+  $('#urlBtn').onmousedown = ev=>{ ev.preventDefault();
+    const u = prompt('YouTube 비공개/일부공개 영상 URL을 붙여넣으세요','https://youtu.be/');
+    if(u && /youtu/.test(u)){ document.execCommand('insertHTML',false, embedHTML(u)); toast('YouTube 링크가 삽입되었습니다'); }
+    else if(u){ toast('현재 범위에서는 YouTube URL만 사용합니다'); } };
+
+  const dz = $('#dz');
+  ['dragenter','dragover'].forEach(t=> dz.addEventListener(t, ev=>{ ev.preventDefault(); dz.classList.add('hot'); }));
+  ['dragleave','drop'].forEach(t=> dz.addEventListener(t, ev=>{ ev.preventDefault(); dz.classList.remove('hot'); }));
+  dz.addEventListener('drop', ev=>{
+    const fs = Array.from(ev.dataTransfer.files||[]);
