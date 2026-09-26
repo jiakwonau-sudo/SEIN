@@ -998,3 +998,963 @@ function bindEditor(e){
   const dz = $('#dz');
   ['dragenter','dragover'].forEach(t=> dz.addEventListener(t, ev=>{ ev.preventDefault(); dz.classList.add('hot'); }));
   ['dragleave','drop'].forEach(t=> dz.addEventListener(t, ev=>{ ev.preventDefault(); dz.classList.remove('hot'); }));
+  dz.addEventListener('drop', ev=>{
+    const fs = Array.from(ev.dataTransfer.files||[]);
+    if(!fs.length){ toast('파일을 인식하지 못했습니다'); return; }
+    fs.forEach(f=> $('#attList').insertAdjacentHTML('beforeend', attHTML({n:f.name, s:(f.size/1048576).toFixed(1)+'MB'})));
+    toast(`${fs.length}개 파일을 첨부했습니다 (목업)`);
+  });
+  $('#attList').addEventListener('click', ev=>{ if(ev.target.classList.contains('rm')) ev.target.parentElement.remove(); });
+}
+
+function panePhoto(e){
+  const photos = Array.from({length:e.photos},(_,i)=>{
+    const st = STAGES[(i+ (e.photos%5)) % STAGES.length];
+    return {i:i+1, st};
+  });
+  const shown = state.photoStage==='all' ? photos : photos.filter(p=>p.st.id===state.photoStage);
+  return `
+  <div class="stage-bar">
+    <span class="muted" style="font-size:12px">단계별 태그</span>
+    <button class="chip ${state.photoStage==='all'?'on':''}" data-ps="all">전체 (${photos.length})</button>
+    ${STAGES.map(s=>{const n=photos.filter(p=>p.st.id===s.id).length;
+      return `<button class="chip ${state.photoStage===s.id?'on':''}" data-ps="${s.id}">${s.name} (${n})</button>`}).join('')}
+    <span style="flex:1"></span>
+    <button class="btn sm" id="dlBtn">선택 일괄 다운로드</button>
+    <button class="btn sm primary" onclick="toast('목업 — 업로드는 시연되지 않습니다')">＋ 사진 업로드</button>
+  </div>
+  <div class="gal">${shown.map(p=>`
+    <div class="ph-card">
+      <input type="checkbox" class="phchk">
+      <div class="im" style="background:linear-gradient(135deg,${p.st.color},${p.st.color}aa)">▤</div>
+      <div class="meta"><span class="badge" style="background:${p.st.color}1a;color:${p.st.color};font-size:10.5px">${p.st.name}</span>
+        <span>IMG_${String(1200+p.i)}</span></div>
+    </div>`).join('')}</div>
+  <div class="dl-note">⚠ 일괄 다운로드는 브라우저·용량 제한으로 <b>최대 20~30장</b> 선택 방식으로 구현됩니다. 초과 선택 시 예외 안내가 노출됩니다. (허용 범위는 클라이언트 확정 필요)</div>`;
+}
+function bindPhoto(e){
+  $$('#eqPane .chip[data-ps]').forEach(b=> b.onclick=()=>{ state.photoStage=b.dataset.ps; paintEqPane(e); });
+  $('#dlBtn').onclick = ()=>{
+    const n = $$('#eqPane .phchk').filter(c=>c.checked).length;
+    if(n===0) return toast('다운로드할 사진을 선택해 주세요');
+    if(n>30) return toast(`선택 ${n}장 — 한 번에 최대 30장까지만 다운로드할 수 있습니다`);
+    toast(`${n}장 압축 다운로드를 시작합니다 (목업)`);
+  };
+}
+
+function paneQuote(e){
+  const q = QUOTES.filter(x=>x.eq===e.id);
+  const fixed = q.find(x=>x.kind.startsWith('확정'));
+  return `
+  <div class="lock-note" style="background:var(--brand-soft);border-color:#d6e3f7;color:#1b3f72">
+    <span>ℹ</span><div>설비 1건당 <b>최종 확정 견적(실비 기준) 1건만</b> 연동됩니다. 예상 비용 기반 견적은 <b>영업 관리 탭</b>에서 관리하며, 세부 견적서는 파일로 보관합니다.</div>
+  </div>
+  <div class="card" style="box-shadow:none">
+    <div class="card-head"><h3 class="card-title">확정 견적 (실비)</h3>
+      ${fixed?'<span class="badge b-green">연동됨</span>':'<span class="badge b-gray">미등록</span>'}</div>
+    <div class="card-body">
+      ${fixed? `<div class="form-grid">
+        <div class="f"><label>견적 번호</label><input value="${fixed.id}" readonly></div>
+        <div class="f"><label>확정 금액 (실비)</label><input value="${W(fixed.amt)} 원" readonly></div>
+        <div class="f"><label>확정일</label><input value="${fixed.date}" readonly></div>
+        <div class="f"><label>작성자</label><input value="${fixed.by}" readonly></div>
+      </div>
+      <div style="margin-top:12px" class="att">📄 ${fixed.file} <span class="sz">클릭 시 미리보기(PDF)</span></div>`
+      : `<div class="empty" style="padding:28px"><h3>확정 견적이 없습니다</h3><p class="muted" style="font-size:12.5px">판매 확정 시 실비 기준 견적 1건을 등록하세요.</p>
+         <button class="btn primary sm" style="margin-top:10px" onclick="toast('목업 — 견적 등록 폼은 시연되지 않습니다')">확정 견적 등록</button></div>`}
+    </div>
+  </div>
+  <div class="card" style="box-shadow:none;margin-top:12px">
+    <div class="card-head"><h3 class="card-title">예상 견적 이력 (영업 관리 연동)</h3></div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>견적번호</th><th>구분</th><th class="num">금액</th><th>작성일</th><th>작성자</th><th>첨부</th></tr></thead>
+      <tbody>${q.length? q.map(x=>`<tr>
+        <td class="strong">${x.id}</td>
+        <td>${x.kind.startsWith('확정')?'<span class="badge b-green">확정(실비)</span>':'<span class="badge b-blue">예상(영업)</span>'}</td>
+        <td class="num">${W(x.amt)}</td><td class="muted">${x.date}</td><td class="muted">${x.by}</td>
+        <td><span class="muted" style="font-size:12px">📄 ${x.file}</span></td></tr>`).join('')
+        : '<tr><td colspan="6" class="muted" style="text-align:center;padding:24px">견적 이력이 없습니다</td></tr>'}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function paneFile(e){
+  return `
+  <div class="filters" style="margin-bottom:12px">
+    <button class="btn sm primary" onclick="toast('목업 — 파일당 30MB 이하 업로드 기준')">＋ 파일 업로드</button>
+    <span class="muted" style="font-size:12px">파일당 기본 30MB 제한 · 대용량 업로드 전용 솔루션은 이번 범위에서 제외</span>
+  </div>
+  <div class="card" style="box-shadow:none"><div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>파일명</th><th>형식</th><th class="num">용량</th><th>등록일</th><th>미리보기</th><th></th></tr></thead>
+    <tbody>${e.atts.length? e.atts.map(a=>{
+      const ext = a.n.split('.').pop().toUpperCase();
+      const prev = ext==='PDF';
+      return `<tr><td class="strong">📄 ${esc(a.n)}</td><td><span class="badge b-gray">${ext}</span></td>
+        <td class="num">${a.s}</td><td class="muted">2026-08-${10+e.atts.indexOf(a)}</td>
+        <td>${prev?'<span class="badge b-green">지원</span>':'<span class="badge b-amber">별도 개발 필요</span>'}</td>
+        <td class="num"><button class="btn xs" onclick="toast('목업 — 다운로드되지 않습니다')">받기</button></td></tr>`}).join('')
+      : '<tr><td colspan="6" class="muted" style="text-align:center;padding:24px">등록된 파일이 없습니다</td></tr>'}</tbody>
+  </table></div></div>
+  <div class="dl-note" style="margin-top:12px">ℹ 미리보기는 <b>PDF만 기본 지원</b>합니다. 워드·엑셀·한글 등은 형식별 커스텀 개발이 필요합니다. 폴더 구조 통째 업로드는 지원하지 않으며, 기존 자료(약 500GB, 폴더 17,000개+)는 전체 이관이 아니라 필요 자료를 선별해 이전 범위를 검토합니다.</div>`;
+}
+
+function paneInfo(e){
+  return `
+  <div class="lock-note" style="background:var(--warn-soft);border-color:#f3e0bd;color:#7a4f06">
+    <span>ℹ</span><div>불필요한 분류 항목은 제거하고 <b>모델명·설비번호 등 핵심 고정 속성만</b> 유지합니다. 나머지 사양 정보는 <b>메모 탭</b>에서 자유 입력으로 관리합니다.</div>
+  </div>
+  <div class="form-grid">
+    <div class="f"><label>모델명 *</label><input value="${esc(e.model)}"></div>
+    <div class="f"><label>설비 번호 *</label><input value="${e.no}"></div>
+    <div class="f"><label>카테고리</label><select><option ${e.cat==='used'?'selected':''}>중고 설비</option><option ${e.cat==='asahi'?'selected':''}>아사히 세이키</option></select></div>
+    <div class="f"><label>상태</label><select><option ${e.status==='재고'?'selected':''}>재고</option><option ${e.status==='영업중'?'selected':''}>영업중</option><option ${e.status==='판매확정'?'selected':''}>판매확정</option></select></div>
+    <div class="f"><label>현재 단계</label><select>${STAGES.map(s=>`<option ${e.stage===s.id?'selected':''}>${s.name}</option>`).join('')}</select></div>
+    <div class="f"><label>연결 고객사</label><input value="${e.customer||''}" placeholder="영업 관리에서 자동 연결"></div>
+    <div class="f"><label>매입가 (실비)</label><input value="${W(e.buy)}"></div>
+    <div class="f"><label>판매가 (확정 시)</label><input value="${e.sell?W(e.sell):''}" placeholder="영업 확정 시 입력"></div>
+  </div>`;
+}
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════
+   3. 영업 관리
+   ══════════════════════════════════════════════════════════ */
+function pageSales(){
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">영업 관리</h1>
+      <div class="page-sub">설비·고객·판매 진행을 연결 · 판매 예정가와 실제 판매가를 분리 관리</div></div>
+    <div class="actions">
+      <button class="btn" id="statBtn">📊 판매 수익 통계</button>
+      <button class="btn primary" id="newDeal">＋ 영업 건 생성</button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="field" style="min-width:220px"><span class="ic">🔍</span><input placeholder="영업 건명 · 고객사 검색"></div>
+    <button class="chip on">전체 ${DEALS.length}</button>
+    <button class="chip">판매 진행 ${DEALS.filter(d=>d.status==='진행').length}</button>
+    <button class="chip">판매 확정 ${DEALS.filter(d=>d.status==='확정').length}</button>
+  </div>
+
+  <div class="card">
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>영업 건</th><th>고객사</th><th>묶인 설비</th><th>담당</th><th class="num">매입가</th><th class="num">판매 예정가</th><th class="num">실제 판매가</th><th class="num">확정 수익</th><th>상태</th></tr></thead>
+      <tbody>${DEALS.map(d=>`
+        <tr class="clickable" data-deal="${d.id}">
+          <td><div class="strong">${d.name}</div><div class="eq-no">${d.id}</div></td>
+          <td>${d.customer}</td>
+          <td><div style="display:flex;gap:4px;flex-wrap:wrap">${d.equips.map(id=>{ const e=eqById(id); return `<span class="badge b-blue">${e?e.model.split(' ')[0]+' '+(e.ton?e.ton+'T':''):id}</span>`}).join('')}</div></td>
+          <td class="muted">${d.owner}</td><td class="num">${만(d.buy)}만</td>
+          <td class="num">${d.plannedSell?만(d.plannedSell)+'만':'—'}</td>
+          <td class="num">${d.sell?만(d.sell)+'만':'<span class="muted">—</span>'}</td>
+          <td class="num strong" style="color:${d.sell?'var(--ok)':'var(--ink-3)'}">${d.sell?만(d.sell-d.buy)+'만':'—'}</td>
+          <td>${d.status==='확정'?`<span class="badge b-green">확정 ${d.confirmedAt.slice(5)}</span>`:'<span class="badge b-amber">진행중</span>'}</td>
+        </tr>`).join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+
+let dealTab='memo';
+function openDeal(id){
+  const d = DEALS.find(x=>x.id===id); if(!d) return;
+  dealTab='memo';
+  openModal(`
+    <div class="modal-head">
+      <div><h3 class="modal-title">${d.name}</h3>
+        <div class="modal-sub"><span style="font-family:var(--mono)">${d.id}</span> · ${d.customer} · 담당 ${d.owner}
+        ${d.status==='확정'?` · 확정일 ${d.confirmedAt}`:''}</div></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        ${d.status==='확정'?'<span class="badge b-green">판매 확정</span>':'<span class="badge b-amber">진행중</span>'}
+        <button class="x" onclick="closeModal()">✕</button></div>
+    </div>
+    <div class="modal-body">
+      <div class="tabs" id="dTabs">
+        <button class="tab on" data-t="memo">공유 메모 (${d.memos.length})</button>
+        <button class="tab" data-t="eq">묶인 설비 (${d.equips.length})</button>
+        <button class="tab" data-t="price">확정 / 금액 입력</button>
+      </div>
+      <div id="dPane"></div>
+    </div>
+    <div class="modal-foot">
+      ${d.status!=='확정'?'<button class="btn danger" onclick="toast(\'중간 분류 데이터는 삭제되고 메모는 보존됩니다 (목업)\')">중간 데이터 삭제</button>':''}
+      <button class="btn" onclick="closeModal()">닫기</button>
+      ${d.status!=='확정'?`<button class="btn ok" onclick="confirmDeal('${d.id}')">영업 확정 처리</button>`:'<button class="btn primary" onclick="toast(\'저장되었습니다 (목업)\')">저장</button>'}
+    </div>`, 'wide');
+
+  $$('#dTabs .tab').forEach(b=> b.onclick=()=>{ dealTab=b.dataset.t;
+    $$('#dTabs .tab').forEach(x=>x.classList.toggle('on',x===b)); paintDeal(d); });
+  paintDeal(d);
+}
+
+function paintDeal(d){
+  const p = $('#dPane');
+  if(dealTab==='memo'){
+    p.innerHTML = `
+      <div class="lock-note" style="background:var(--brand-soft);border-color:#d6e3f7;color:#1b3f72">
+        <span>💬</span><div>이 메모는 <b>영업 건 단위로 공유</b>되며, 묶인 설비(${d.equips.map(i=>eqById(i)?.model).join(', ')}) 상세에서도 동일하게 표시됩니다. 영업 건이 삭제되어도 메모는 보존됩니다.</div></div>
+      <div class="tl">${d.memos.map(m=>`<div class="tl-item"><div class="w">${m.w}</div><div class="c">${esc(m.c)}</div></div>`).join('')}</div>
+      <textarea class="note-input" id="newMemo" placeholder="새 메모를 입력하세요 — 묶인 모든 설비에서 함께 보입니다"></textarea>
+      <div style="text-align:right;margin-top:8px"><button class="btn primary sm" id="addMemo">메모 등록</button></div>`;
+    $('#addMemo').onclick = ()=>{
+      const v = $('#newMemo').value.trim(); if(!v) return toast('메모 내용을 입력해 주세요');
+      d.memos.push({w:'서장원 · 08-24 지금', c:v}); paintDeal(d); toast('메모가 등록되었습니다');
+    };
+  } else if(dealTab==='eq'){
+    p.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span class="muted" style="font-size:12.5px">판매 확정 기준으로 복수 설비를 하나의 영업 건으로 묶습니다.</span>
+        <button class="btn sm" id="bindBtn">＋ 설비 묶기</button></div>
+      <div class="eq-grid">${d.equips.map(id=>{const e=eqById(id); if(!e) return '';
+        return `<div class="eq" data-eq="${e.id}">
+          <div class="eq-thumb" style="height:96px;background:linear-gradient(135deg,${e.color},${e.color}bb)"><span class="ph">▤</span>
+            <span class="tag-stage badge" style="background:rgba(255,255,255,.92);color:${stageOf(e.stage).color}">${stageOf(e.stage).name}</span></div>
+          <div class="eq-body"><div class="eq-model">${e.model}</div><div class="eq-no">${e.no}</div>
+            <div class="eq-foot"><span class="muted" style="font-size:11.5px">매입 ${만(e.buy)}만</span>
+              <span class="eq-price">${e.sell?만(e.sell)+'만':'<span class="muted" style="font-weight:600">미확정</span>'}</span></div></div></div>`}).join('')}</div>`;
+    $('#bindBtn').onclick = ()=> openBind(d);
+    $$('#dPane .eq').forEach(c=> c.onclick=()=> openEquip(c.dataset.eq));
+  } else {
+    const done = d.status==='확정';
+    p.innerHTML = `
+      <div class="lock-note" style="background:${done?'var(--ok-soft)':'var(--warn-soft)'};border-color:${done?'#c3e8d5':'#f3e0bd'};color:${done?'#0a5c38':'#7a4f06'}">
+        <span>${done?'✔':'⚠'}</span><div>${done?'확정된 매입가·판매가는 <b>대시보드 지표에 즉시 반영</b>됩니다.':'영업 확정 시 <b>실제 매입가·판매가</b>를 입력하면 대시보드에 반영됩니다.'}</div></div>
+      <div class="form-grid">
+        <div class="f"><label>실제 매입가 합계 (원)</label><input value="${W(d.buy)}"></div>
+        <div class="f"><label>판매 예정가 합계 (원)</label><input value="${d.plannedSell?W(d.plannedSell):''}" placeholder="진행 중 예정가"></div>
+        <div class="f"><label>실제 판매가 합계 (원)</label><input value="${d.sell?W(d.sell):''}" placeholder="판매 확정 시 입력"></div>
+        <div class="f"><label>수익 (자동)</label><input value="${d.sell?W(d.sell-d.buy):'—'}" readonly></div>
+        <div class="f"><label>수익률 (자동)</label><input value="${d.sell?((d.sell-d.buy)/d.sell*100).toFixed(1)+' %':'—'}" readonly></div>
+        <div class="f"><label>확정일</label><input type="date" value="${d.confirmedAt||'2026-08-24'}"></div>
+        <div class="f"><label>담당자</label><input value="${d.owner}"></div>
+      </div>
+      <div class="card" style="box-shadow:none;margin-top:14px"><div class="card-head"><h3 class="card-title">설비별 금액 내역</h3></div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>설비</th><th class="num">매입가</th><th class="num">판매가</th><th class="num">수익</th></tr></thead>
+        <tbody>${d.equips.map(id=>{const e=eqById(id); if(!e) return '';
+          return `<tr><td class="strong">${e.model}</td><td class="num">${W(e.buy)}</td>
+          <td class="num">${e.sell?W(e.sell):'—'}</td><td class="num strong" style="color:${e.sell?'var(--ok)':'var(--ink-3)'}">${e.sell?W(e.sell-e.buy):'—'}</td></tr>`}).join('')}
+        </tbody></table></div></div>`;
+  }
+}
+
+function openBind(d){
+  const cand = EQUIP.filter(e=> !d.equips.includes(e.id));
+  openModal(`
+    <div class="modal-head"><div><h3 class="modal-title">설비 묶기</h3>
+      <div class="modal-sub">${d.name} · 복수 선택 가능</div></div><button class="x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">${cand.map(e=>`
+      <label class="pick-row"><input type="checkbox" value="${e.id}">
+        <div style="width:34px;height:26px;border-radius:5px;background:linear-gradient(135deg,${e.color},${e.color}bb)"></div>
+        <div style="flex:1"><div class="strong">${e.model}</div><div class="eq-no">${e.no} · ${stageOf(e.stage).name}</div></div>
+        <span class="muted" style="font-size:12px">매입 ${만(e.buy)}만</span></label>`).join('')}</div>
+    <div class="modal-foot"><button class="btn" onclick="openDeal('${d.id}')">뒤로</button>
+      <button class="btn primary" id="bindOk">선택 설비 묶기</button></div>`,'narrow');
+  $('#bindOk').onclick = ()=>{
+    const picked = $$('#modal input:checked').map(c=>c.value);
+    if(!picked.length) return toast('묶을 설비를 선택해 주세요');
+    picked.forEach(id=>{ d.equips.push(id); d.buy += (eqById(id)?.buy||0); });
+    openDeal(d.id); toast(`${picked.length}대를 영업 건에 묶었습니다`);
+  };
+}
+
+function confirmDeal(id){
+  const d = DEALS.find(x=>x.id===id);
+  openModal(`
+    <div class="modal-head"><div><h3 class="modal-title">영업 확정 처리</h3>
+      <div class="modal-sub">${d.name}</div></div><button class="x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="lock-note" style="background:var(--ok-soft);border-color:#c3e8d5;color:#0a5c38"><span>✔</span>
+        <div>확정 시 상태가 <b>확정</b>으로 표시되고, 입력한 매입가·판매가가 <b>대시보드 지표와 수익 통계</b>에 반영됩니다.</div></div>
+      <div class="form-grid">
+        <div class="f"><label>실제 매입가 (원)</label><input id="cBuy" value="${W(d.buy)}"></div>
+        <div class="f"><label>판매 예정가 (원)</label><input value="${d.plannedSell?W(d.plannedSell):''}" readonly></div>
+        <div class="f"><label>실제 판매가 (원)</label><input id="cSell" placeholder="판매 확정 금액 입력"></div>
+        <div class="f"><label>확정일</label><input type="date" value="2026-08-24"></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="openDeal('${id}')">취소</button>
+      <button class="btn ok" id="cOk">확정</button></div>`,'narrow');
+  $('#cOk').onclick = ()=>{
+    const v = Number(($('#cSell').value||'').replace(/[^\d]/g,''));
+    if(!v) return toast('실제 판매가를 입력해 주세요');
+    d.sell = v; d.status='확정'; d.confirmedAt='2026-08-24';
+    closeModal(); render(); toast('영업 건이 확정되었습니다 — 대시보드에 반영됩니다');
+  };
+}
+
+function openStats(){
+  const done = DEALS.filter(d=>d.status==='확정');
+  const profits = done.map(d=>d.sell-d.buy);
+  const avg = profits.length? profits.reduce((a,b)=>a+b,0)/profits.length : 0;
+  openModal(`
+    <div class="modal-head"><div><h3 class="modal-title">판매 수익 통계</h3>
+      <div class="modal-sub">확정 건 기준 · 2026년</div></div><button class="x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="kpis" style="margin-bottom:14px">
+        <div class="kpi"><div class="k-label">평균 수익</div><div class="k-value">${만(avg)}<span class="unit">만원</span></div></div>
+        <div class="kpi"><div class="k-label">최고 수익</div><div class="k-value">${만(Math.max(0,...profits))}<span class="unit">만원</span></div></div>
+        <div class="kpi"><div class="k-label">확정 건수</div><div class="k-value">${done.length}<span class="unit">건</span></div></div>
+      </div>
+      <div class="card" style="box-shadow:none"><div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>영업 건</th><th>고객사</th><th class="num">매입</th><th class="num">판매</th><th class="num">수익</th><th class="num">수익률</th></tr></thead>
+        <tbody>${done.map(d=>`<tr><td class="strong">${d.name}</td><td>${d.customer}</td>
+          <td class="num">${만(d.buy)}만</td><td class="num">${만(d.sell)}만</td>
+          <td class="num strong" style="color:var(--ok)">${만(d.sell-d.buy)}만</td>
+          <td class="num">${((d.sell-d.buy)/d.sell*100).toFixed(1)}%</td></tr>`).join('')}</tbody>
+      </table></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">닫기</button></div>`,'wide');
+}
+
+/* ══════════════════════════════════════════════════════════
+   4. 고객 관리
+   ══════════════════════════════════════════════════════════ */
+function pageCustomer(){
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">고객 관리</h1>
+      <div class="page-sub">고객 정보 관리 · 송신금지 제외 · Gmail 대량/자동 분할 발송 흐름</div></div>
+    <div class="actions">
+      <button class="btn" id="copyInfo">📋 고객정보 복사</button>
+      <button class="btn primary" id="bulkMail">✉ Gmail 대량 발송</button>
+      <button class="btn" onclick="toast('목업 — 고객 등록 폼은 시연되지 않습니다')">＋ 고객 등록</button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="field" style="min-width:220px"><span class="ic">🔍</span><input placeholder="회사명 · 담당자 · 이메일 검색"></div>
+    <div class="field"><select><option>전체 회사</option>${[...new Set(CUSTOMERS.map(c=>c.co))].map(c=>`<option>${c}</option>`).join('')}</select></div>
+    <span style="flex:1"></span>
+    <div class="legend">
+      <span><i style="background:#c1362f"></i>송신 금지</span>
+      <span><i style="background:#b5730a"></i>스팸 처리</span>
+      <span><i style="background:#8a939f"></i>이메일 미등록</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr>
+        <th style="width:34px"><input type="checkbox" id="chkAll" style="accent-color:var(--brand)"></th>
+        <th>회사명</th><th>담당자</th><th>부서</th><th>직함</th><th>연락처</th><th>이메일</th><th>분류</th><th style="width:90px">송신 금지</th>
+      </tr></thead>
+      <tbody>${CUSTOMERS.map((c,i)=>{
+        const f = FLAG[c.flag];
+        return `<tr class="${f.cls}">
+          <td><input type="checkbox" class="cchk" data-i="${i}" ${c.flag==='block'||!c.mail?'disabled':'checked'} style="accent-color:var(--brand)"></td>
+          <td class="strong">${c.co}</td><td>${c.p}</td><td class="muted">${c.d}</td><td class="muted">${c.t}</td>
+          <td class="nowrap" style="font-family:var(--mono);font-size:12px">${c.tel}</td>
+          <td style="font-size:12.5px">${c.mail? esc(c.mail) : '<span class="muted">—</span>'}</td>
+          <td>${f.badge || '<span class="badge b-blue">정상</span>'}</td>
+          <td><label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+            <input type="checkbox" class="bchk" data-i="${i}" ${c.flag==='block'?'checked':''} style="accent-color:var(--danger)">금지</label></td>
+        </tr>`}).join('')}</tbody>
+    </table></div>
+  </div>
+
+  <div class="dl-note" style="background:var(--brand-soft);border-color:#d6e3f7;color:#1b3f72;margin-top:14px">
+    ℹ <b>Gmail 대량 발송 + 자동 분할 발송</b> 방향입니다. 일일 <b>500건은 검토 기준</b>이며 실제 한도는 계정·연동 방식 확인 후 확정합니다.<br>
+    메일 본문에 정보를 표시하고 첨부 자료는 <b>링크 공유</b>를 사용합니다. 송신금지·이메일 미등록 고객은 발송 대상에서 자동 제외됩니다.
+  </div>`;
+}
+
+function selectedCustomers(){
+  return $$('.cchk').filter(c=>c.checked && !c.disabled).map(c=>CUSTOMERS[+c.dataset.i]);
+}
+
+function openBulkMail(){
+  const ok = selectedCustomers().filter(c=>c.mail && c.flag!=='block');
+  const excluded = CUSTOMERS.filter(c=>c.flag==='block' || !c.mail);
+  if(!ok.length) return toast('발송할 고객을 선택해 주세요');
+  openModal(`
+    <div class="modal-head"><div><h3 class="modal-title">Gmail 대량 발송</h3>
+      <div class="modal-sub">선택 ${ok.length}건 · 송신금지/이메일 미등록 자동 제외 · 자동 분할 발송 방향</div></div>
+      <button class="x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="lock-note" style="background:var(--warn-soft);border-color:#f3e0bd;color:#7a4f06">
+        <span>⚑</span><div>일일 <b>500건은 검토 기준</b>입니다. 실제 Gmail 계정과 연동 방식에 따른 한도는 개발팀 확인 후 확정합니다.</div>
+      </div>
+      <div class="form-grid">
+        <div class="f"><label>발송 언어</label><select><option>한국어</option><option>영어</option><option>일본어</option></select><div class="hint">언어별 구현 범위는 기존 시스템 확인 후 확정</div></div>
+        <div class="f"><label>수신자</label><input value="${ok.length}명 선택됨" readonly></div>
+      </div>
+      <div class="f" style="margin-top:12px"><label>제목</label><input placeholder="메일 제목"></div>
+      <div class="f" style="margin-top:12px"><label>본문</label><textarea rows="7" placeholder="상품 정보와 안내 내용을 입력합니다. 메일 본문에 직접 표시됩니다."></textarea></div>
+      <div class="f" style="margin-top:12px"><label>자료 링크</label><input placeholder="Google Drive 또는 시스템 자료 링크"><div class="hint">첨부파일 대신 링크 공유 방식</div></div>
+      <div style="margin-top:12px;font-size:12.5px" class="muted"><b style="color:var(--danger)">자동 제외 ${excluded.length}건</b> — ${excluded.map(c=>`${c.co} ${c.p}(${FLAG[c.flag].label})`).join(', ')}</div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">취소</button>
+      <button class="btn primary" onclick="closeModal();toast('${ok.length}건을 자동 분할 발송 큐에 등록했습니다 (목업)')">발송 예약</button></div>`, 'wide');
+}
+
+function bindCustomer(){
+  $('#chkAll').onchange = e=> $$('.cchk').forEach(c=>{ if(!c.disabled) c.checked = e.target.checked; });
+  $$('.bchk').forEach(b=> b.onchange = e=>{
+    const i = +e.target.dataset.i;
+    CUSTOMERS[i].flag = e.target.checked ? 'block' : (CUSTOMERS[i].mail? '' : 'nomail');
+    render(); toast(e.target.checked? `${CUSTOMERS[i].co} — 송신 금지로 지정, 발송 대상에서 제외됩니다` : `${CUSTOMERS[i].co} — 송신 금지 해제`);
+  });
+  $('#bulkMail').onclick = openBulkMail;
+  $('#copyInfo').onclick = ()=>{
+    const picked = selectedCustomers();
+    if(!picked.length) return toast('복사할 고객을 선택해 주세요');
+    const txt = picked.map(c=>`${c.co} | ${c.p} | ${c.d} ${c.t} | ${c.tel} | ${c.mail}`).join('\n');
+    (navigator.clipboard? navigator.clipboard.writeText(txt) : Promise.reject())
+      .then(()=>toast(`${picked.length}건의 고객정보를 복사했습니다`))
+      .catch(()=>toast('복사 권한이 없어 시연하지 못했습니다'));
+  };
+}
+
+/* ══════════════════════════════════════════════════════════
+   아사히 세이키 — 제품 자료 드라이브 (폴더 구조 열람 방식)
+   ══════════════════════════════════════════════════════════ */
+const F = (n,t,s,d,by)=>({n, kind:'file', t, s, d, by});
+const D = (n,children)=>({n, kind:'folder', children});
+
+const DRIVE = D('아사히 세이키', [
+  D('01_제품 자료', [
+    D('AP-450 세정기 (SEIN-A-1104)', [
+      D('01_사진', [
+        F('AP450_전체_정면.jpg','JPG','4.2MB','2026-08-20','김담당'),
+        F('AP450_탱크부.jpg','JPG','3.8MB','2026-08-20','김담당'),
+        F('AP450_제어반.jpg','JPG','3.1MB','2026-08-20','김담당'),
+        F('AP450_배관_상세.jpg','JPG','5.6MB','2026-08-18','김담당'),
+        F('AP450_명판.jpg','JPG','1.9MB','2026-08-18','김담당'),
+      ]),
+      D('02_도면', [
+        F('배관도.dxf','DXF','8.9MB','2026-08-18','서장원'),
+        F('설치_레이아웃.dwg','DWG','24.1MB','2026-08-18','서장원'),
+      ]),
+      D('03_기술 자료', [
+        F('ASAHI SEIKI AP-450 매뉴얼.pdf','PDF','22.7MB','2026-08-15','서장원'),
+        F('전기_결선도.pdf','PDF','6.4MB','2026-08-15','서장원'),
+        F('시운전_체크리스트.xlsx','XLSX','420KB','2026-08-16','김담당'),
+      ]),
+      D('04_견적·계약', [
+        F('대성정밀_AP-450_최종견적.xlsx','XLSX','680KB','2026-08-20','서장원'),
+        F('대성정밀_계약서(초안).hwp','HWP','1.2MB','2026-08-21','서장원'),
+      ]),
+      D('05_영상', [
+        F('AP450_시운전_영상.mp4','MP4','24MB','2026-08-14','김담당'),
+      ]),
+    ]),
+    D('AP-200 세정기 (SEIN-A-1105)', [
+      D('01_사진', [
+        F('AP200_전체.jpg','JPG','3.6MB','2026-08-19','김담당'),
+        F('AP200_탱크.jpg','JPG','2.9MB','2026-08-19','김담당'),
+        F('AP200_에어나이프.jpg','JPG','2.4MB','2026-08-19','김담당'),
+      ]),
+      D('02_도면', [ F('AP200_배관도.dxf','DXF','5.2MB','2026-08-19','서장원') ]),
+      D('03_기술 자료', [ F('AP-200_사양서.pdf','PDF','3.8MB','2026-08-19','서장원') ]),
+      D('04_견적·계약', [ F('유진테크_AP-200_견적.pdf','PDF','980KB','2026-08-19','김담당') ]),
+    ]),
+    D('AP-800 세정기 (SEIN-A-1106)', [
+      D('01_사진', []), D('02_도면', []),
+      D('03_기술 자료', [ F('AP-800_카탈로그.pdf','PDF','14.2MB','2026-07-28','서장원') ]),
+    ]),
+    D('DR-300 건조기 (SEIN-A-1201)', [
+      D('01_사진', [ F('DR300_전체.jpg','JPG','3.3MB','2026-06-12','김담당') ]),
+      D('03_기술 자료', [ F('DR-300_매뉴얼.pdf','PDF','9.7MB','2026-06-12','서장원') ]),
+    ]),
+  ]),
+  D('02_공통 매뉴얼', [
+    F('세정기_공통_취급주의사항.pdf','PDF','2.1MB','2026-05-04','서장원'),
+    F('설치_표준_절차서.pdf','PDF','5.5MB','2026-05-04','서장원'),
+    F('부품_호환표.xlsx','XLSX','1.1MB','2026-06-30','김담당'),
+  ]),
+  D('03_선적·통관 서류', [
+    D('2026-08 대성정밀', [
+      F('INVOICE_2608.pdf','PDF','340KB','2026-08-21','서장원'),
+      F('PACKING_LIST_2608.pdf','PDF','290KB','2026-08-21','서장원'),
+      F('B_L_사본.pdf','PDF','520KB','2026-08-22','서장원'),
+    ]),
+    D('2026-07 경원산업', [
+      F('INVOICE_2607.pdf','PDF','330KB','2026-07-18','서장원'),
+    ]),
+  ]),
+  D('04_사진 아카이브(과거)', [
+    D('2025', []), D('2024', []), D('2023', []),
+  ]),
+  F('아사히세이키_품목_리스트.xlsx','XLSX','2.4MB','2026-08-01','서장원'),
+  F('제조사_연락처.pdf','PDF','180KB','2026-03-11','서장원'),
+]);
+
+const FI = {
+  folder:['f-folder','📁'], PDF:['f-pdf','PDF'], DWG:['f-dwg','DWG'], DXF:['f-dwg','DXF'],
+  JPG:['f-img','IMG'], PNG:['f-img','IMG'], XLSX:['f-xls','XLS'], HWP:['f-doc','HWP'],
+  DOCX:['f-doc','DOC'], MP4:['f-vid','▶'],
+};
+const fi = t =>{ const [c,l] = FI[t] || ['f-etc','FILE'];
+  return `<span class="fi ${c}" style="font-size:${l.length>2?'8.5px':'12px'};font-weight:800">${l}</span>`; };
+
+function driveNodeAt(path){
+  let node = DRIVE;
+  for(const seg of path){
+    const next = (node.children||[]).find(c=>c.kind==='folder' && c.n===seg);
+    if(!next) break;
+    node = next;
+  }
+  return node;
+}
+function countIn(node){
+  let f=0, d=0;
+  (node.children||[]).forEach(c=> c.kind==='folder'? d++ : f++);
+  return {d,f};
+}
+function totalFiles(node){
+  if(node.kind==='file') return 1;
+  return (node.children||[]).reduce((a,c)=>a+totalFiles(c),0);
+}
+
+function pageDrive(){
+  const node = driveNodeAt(state.drivePath);
+  const items = (node.children||[]).slice().sort((a,b)=>
+    a.kind!==b.kind ? (a.kind==='folder'?-1:1) : a.n.localeCompare(b.n,'ko'));
+  const {d,f} = countIn(node);
+
+  const crumbs = ['아사히 세이키', ...state.drivePath].map((seg,i)=>{
+    const last = i===state.drivePath.length;
+    return `<button class="${last?'last':''}" data-crumb="${i}">${esc(seg)}</button>` +
+      (last?'':'<span class="sep">›</span>');
+  }).join('');
+
+  // 좌측 폴더 트리 (2단계까지 펼침)
+  const tree = (DRIVE.children||[]).filter(c=>c.kind==='folder').map(top=>{
+    const open = state.drivePath[0]===top.n;
+    const subs = open ? (top.children||[]).filter(c=>c.kind==='folder').map(sub=>
+      `<button class="tree-item ${state.drivePath[1]===sub.n?'on':''}" data-path='${JSON.stringify([top.n,sub.n])}' style="padding-left:26px">
+        <span class="fi f-folder" style="width:18px;height:18px;font-size:9px">📁</span><span class="nm">${esc(sub.n)}</span></button>`).join('') : '';
+    return `<button class="tree-item ${state.drivePath.length===1&&open?'on':''}" data-path='${JSON.stringify([top.n])}'>
+      <span class="tw">${open?'▾':'▸'}</span><span class="fi f-folder" style="width:18px;height:18px;font-size:9px">📁</span>
+      <span class="nm">${esc(top.n)}</span></button>${subs}`;
+  }).join('');
+
+  const rows = items.map((it,i)=>`
+    <tr class="clickable" data-open="${i}">
+      <td onclick="event.stopPropagation()"><input type="checkbox" class="dchk" data-i="${i}" style="accent-color:var(--brand)"></td>
+      <td><div class="name-cell">${it.kind==='folder'?fi('folder'):fi(it.t)}
+        <span class="t">${esc(it.n)}</span></div></td>
+      <td>${it.kind==='folder'?'<span class="badge b-gray">폴더</span>':`<span class="badge b-gray">${it.t}</span>`}</td>
+      <td class="num nowrap">${it.kind==='folder'? `<span class="muted">${totalFiles(it)}개 항목</span>` : it.s}</td>
+      <td class="muted nowrap">${it.kind==='folder'? (it.children&&it.children.length? '—':'—') : it.d}</td>
+      <td class="muted nowrap">${it.kind==='folder'?'—':it.by}</td>
+      <td>${it.kind==='folder'?'—':(it.t==='PDF'?'<span class="badge b-green">미리보기</span>':'<span class="badge b-amber">별도 개발</span>')}</td>
+    </tr>`).join('');
+
+  const tiles = items.map((it,i)=>`
+    <div class="tile" data-open="${i}">
+      ${it.kind==='folder'?fi('folder'):fi(it.t)}
+      <div class="t">${esc(it.n)}</div>
+      <div class="s">${it.kind==='folder'? totalFiles(it)+'개 항목' : it.s+' · '+it.d}</div>
+    </div>`).join('');
+
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">제품 드라이브</h1>
+      <div class="page-sub">아사히 세이키 · 제품별 폴더 구조로 자료를 열람합니다 · 현재 폴더 ${d}개 · 파일 ${f}개 (전체 ${totalFiles(DRIVE)}개)</div></div>
+    <div class="actions">
+      <div class="seg"><button class="${state.driveView==='list'?'on':''}" data-dv="list">목록</button><button class="${state.driveView==='tile'?'on':''}" data-dv="tile">타일</button></div>
+      <button class="btn" id="dNewFolder">＋ 새 폴더</button>
+      <button class="btn" id="dDl">선택 다운로드</button>
+      <button class="btn primary" id="dUp">↑ 파일 업로드</button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="field" style="min-width:240px"><span class="ic">🔍</span><input placeholder="이 폴더 및 하위 폴더에서 검색"></div>
+    <div class="field"><select><option>전체 형식</option><option>PDF</option><option>도면(DWG·DXF)</option><option>사진</option><option>문서</option><option>영상</option></select></div>
+    <div class="field"><select><option>이름순</option><option>최신 수정순</option><option>용량순</option></select></div>
+  </div>
+
+  <div class="drive">
+    <aside class="tree">
+      <div class="side-label" style="padding:2px 8px 8px">폴더</div>
+      <button class="tree-item ${state.drivePath.length===0?'on':''}" data-path='[]'>
+        <span class="tw"></span><span class="fi f-folder" style="width:18px;height:18px;font-size:9px">📁</span><span class="nm">아사히 세이키 (전체)</span></button>
+      ${tree}
+    </aside>
+
+    <div>
+      <div class="crumbs">
+        ${state.drivePath.length? `<button id="dUpDir" title="상위 폴더" style="color:var(--ink-2)">↑</button><span class="sep">|</span>`:''}
+        ${crumbs}
+      </div>
+
+      ${items.length===0
+        ? `<div class="card drive-drop" id="dropArea"><div class="empty"><div class="ic">📂</div><h3>빈 폴더입니다</h3>
+            <p style="font-size:13px">파일을 이 영역에 드래그 앤 드롭하거나 상단 <b>업로드</b> 버튼을 사용하세요.</p></div></div>`
+        : state.driveView==='list'
+          ? `<div class="card drive-drop" id="dropArea"><div class="tbl-wrap"><table class="tbl">
+              <thead><tr><th style="width:34px"><input type="checkbox" id="dAll" style="accent-color:var(--brand)"></th>
+                <th>이름</th><th>종류</th><th class="num">크기</th><th>수정일</th><th>수정자</th><th>미리보기</th></tr></thead>
+              <tbody>${rows}</tbody></table></div></div>`
+          : `<div class="drive-drop" id="dropArea" style="border-color:transparent"><div class="tiles">${tiles}</div></div>`}
+
+      <div class="dl-note" style="margin-top:14px">
+        ℹ 폴더 <b>통째 업로드는 지원하지 않습니다</b>. 기존 자료(약 500GB, 폴더 17,000개+)는 필요성과 용량을 검토해 선별 이전 범위를 정합니다.
+        일괄 다운로드는 브라우저·용량 제한으로 <b>최대 20~30개</b> 선택 방식이며, 허용 범위는 클라이언트 확정 후 반영합니다.
+      </div>
+    </div>
+  </div>`;
+}
+
+function bindDrive(){
+  const node = driveNodeAt(state.drivePath);
+  const items = (node.children||[]).slice().sort((a,b)=>
+    a.kind!==b.kind ? (a.kind==='folder'?-1:1) : a.n.localeCompare(b.n,'ko'));
+
+  $$('[data-dv]').forEach(b=> b.onclick=()=>{ state.driveView=b.dataset.dv; render(); });
+  $$('[data-path]').forEach(b=> b.onclick=()=>{ state.drivePath = JSON.parse(b.dataset.path); render(); });
+  $$('[data-crumb]').forEach(b=> b.onclick=()=>{ state.drivePath = state.drivePath.slice(0, +b.dataset.crumb); render(); });
+  if($('#dUpDir')) $('#dUpDir').onclick = ()=>{ state.drivePath.pop(); render(); };
+
+  $$('[data-open]').forEach(el=> el.onclick = ()=>{
+    const it = items[+el.dataset.open];
+    if(!it) return;
+    if(it.kind==='folder'){ state.drivePath = state.drivePath.concat([it.n]); render(); }
+    else openFilePreview(it);
+  });
+
+  if($('#dAll')) $('#dAll').onchange = e=> $$('.dchk').forEach(c=> c.checked = e.target.checked);
+  $('#dDl').onclick = ()=>{
+    const n = $$('.dchk').filter(c=>c.checked).length;
+    if(!n) return toast('다운로드할 항목을 선택해 주세요');
+    if(n>30) return toast(`선택 ${n}개 — 한 번에 최대 30개까지만 다운로드할 수 있습니다`);
+    toast(`${n}개 항목 압축 다운로드를 시작합니다 (목업)`);
+  };
+  $('#dUp').onclick = ()=> toast('목업 — 파일당 30MB 이하 업로드 기준입니다');
+  $('#dNewFolder').onclick = ()=>{
+    const n = prompt('새 폴더 이름', '새 폴더');
+    if(!n) return;
+    (node.children = node.children||[]).push(D(n, []));
+    render(); toast(`"${n}" 폴더를 만들었습니다 (목업)`);
+  };
+
+  const da = $('#dropArea');
+  if(da){
+    ['dragenter','dragover'].forEach(t=> da.addEventListener(t, ev=>{ ev.preventDefault(); da.classList.add('hot'); }));
+    ['dragleave','drop'].forEach(t=> da.addEventListener(t, ev=>{ ev.preventDefault(); da.classList.remove('hot'); }));
+    da.addEventListener('drop', ev=>{
+      const fs = Array.from(ev.dataTransfer.files||[]);
+      if(!fs.length) return toast('폴더는 통째로 업로드할 수 없습니다 — 파일 단위로 올려주세요');
+      fs.forEach(file=>{
+        const ext = (file.name.split('.').pop()||'').toUpperCase();
+        (node.children = node.children||[]).push(F(file.name, ext, (file.size/1048576).toFixed(1)+'MB','2026-08-24','서장원'));
+      });
+      render(); toast(`${fs.length}개 파일을 업로드했습니다 (목업)`);
+    });
+  }
+}
+
+function openFilePreview(it){
+  const isPdf = it.t==='PDF', isImg = ['JPG','PNG'].includes(it.t), isVid = it.t==='MP4';
+  const body = isPdf
+    ? `<div class="prev-box"><div><div class="big">📄</div><b style="color:var(--ink)">PDF 미리보기</b>
+        <div style="font-size:12.5px;margin-top:4px">브라우저 내장 뷰어로 바로 열람합니다 (단독 개발 지원 범위)</div></div></div>`
+    : isImg
+    ? `<div class="prev-box" style="background:linear-gradient(135deg,#6b4fbb,#6b4fbbaa);color:#fff"><div><div class="big">▤</div><b>이미지 미리보기</b></div></div>`
+    : isVid
+    ? `<div class="prev-box" style="background:#111;color:#fff"><div><div class="big">▶</div><b>동영상</b>
+        <div style="font-size:12.5px;margin-top:4px">30MB 이하 영상 파일은 직접 업로드, 대용량/비공개 영상은 YouTube 비공개 URL 방식으로 연결합니다</div></div></div>`
+    : `<div class="prev-box"><div><div class="big">🗎</div><b style="color:var(--warn)">미리보기 미지원 형식 (${it.t})</b>
+        <div style="font-size:12.5px;margin-top:4px">워드·엑셀·한글 등은 형식별 커스텀 개발이 필요합니다.<br>현재는 다운로드 후 열람 방식입니다.</div></div></div>`;
+
+  openModal(`
+    <div class="modal-head">
+      <div><h3 class="modal-title">${esc(it.n)}</h3>
+        <div class="modal-sub">${['아사히 세이키',...state.drivePath].join(' / ')} · ${it.t} · ${it.s} · ${it.d} · ${it.by}</div></div>
+      <button class="x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      ${body}
+      <div class="form-grid" style="margin-top:14px">
+        <div class="f"><label>파일명</label><input value="${esc(it.n)}"></div>
+        <div class="f"><label>연동 설비</label><select><option>연결 없음</option>${EQUIP.map(e=>`<option ${e.cat==='asahi'?'':''}>${e.model}</option>`).join('')}</select></div>
+        <div class="f"><label>등록일 / 등록자</label><input value="${it.d} · ${it.by}" readonly></div>
+      </div>
+      <div class="f" style="margin-top:12px"><label>파일 메모</label>
+        <textarea rows="2" placeholder="이 파일에 대한 메모 (예: 최신본, 구버전 대체 등)"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn danger" onclick="toast('목업 — 삭제되지 않습니다')">삭제</button>
+      <button class="btn" onclick="closeModal()">닫기</button>
+      <button class="btn primary" onclick="toast('목업 — 다운로드되지 않습니다')">다운로드</button>
+    </div>`, 'wide');
+}
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════
+   5. 견적 관리 (상품 관리 내 별도 탭)
+   ══════════════════════════════════════════════════════════ */
+function pageQuote(){
+  const fixed = QUOTES.filter(q=>q.kind.startsWith('확정'));
+  const est = QUOTES.filter(q=>!q.kind.startsWith('확정'));
+  const row = q =>{
+    const e = eqById(q.eq);
+    return `<tr class="clickable" data-eq="${q.eq}">
+      <td class="strong">${q.id}</td>
+      <td>${e? e.model : q.eq}<div class="eq-no">${e?e.no:''}</div></td>
+      <td>${q.kind.startsWith('확정')?'<span class="badge b-green">확정(실비)</span>':'<span class="badge b-blue">예상(영업)</span>'}</td>
+      <td class="num strong">${W(q.amt)}</td>
+      <td class="muted nowrap">${q.date}</td><td class="muted">${q.by}</td>
+      <td><span class="att">📄 ${esc(q.file)}</span></td></tr>`;
+  };
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">견적 관리</h1>
+      <div class="page-sub">설비 1건당 <b>확정 견적(실비) 1건</b>만 연동 · 예상 비용 견적은 영업 관리에서 별도 관리 · 세부 견적서는 파일 보관</div></div>
+    <div class="actions"><button class="btn primary" onclick="toast('목업 — 견적 등록 폼은 시연되지 않습니다')">＋ 견적 등록</button></div>
+  </div>
+
+  <div class="kpis" style="margin-bottom:16px">
+    <div class="kpi"><div class="k-label">확정 견적</div><div class="k-value">${fixed.length}<span class="unit">건</span></div>
+      <div class="k-delta flat">합계 ${만(fixed.reduce((a,q)=>a+q.amt,0))}만원</div></div>
+    <div class="kpi"><div class="k-label">예상 견적</div><div class="k-value">${est.length}<span class="unit">건</span></div>
+      <div class="k-delta flat">합계 ${만(est.reduce((a,q)=>a+q.amt,0))}만원</div></div>
+    <div class="kpi"><div class="k-label">첨부 견적서</div><div class="k-value">${QUOTES.length}<span class="unit">개</span></div>
+      <div class="k-delta flat">PDF 미리보기 지원</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-head"><h3 class="card-title">확정 견적 (실비 기준 · 설비 연동)</h3><span class="badge b-green">${fixed.length}건</span></div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>견적번호</th><th>연동 설비</th><th>구분</th><th class="num">금액</th><th>작성일</th><th>작성자</th><th>세부 견적 파일</th></tr></thead>
+      <tbody>${fixed.map(row).join('')}</tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3 class="card-title">예상 견적 (영업 관리 기준)</h3><span class="badge b-blue">${est.length}건</span></div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>견적번호</th><th>연동 설비</th><th>구분</th><th class="num">금액</th><th>작성일</th><th>작성자</th><th>세부 견적 파일</th></tr></thead>
+      <tbody>${est.map(row).join('')}</tbody></table></div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   6. 자료실
+   ══════════════════════════════════════════════════════════ */
+function pageFiles(){
+  const FILES = [
+    {n:'AIDA NC1-200D 기술자료.pdf', t:'PDF', s:'12.4MB', d:'2026-08-20', eq:'EQ-2401', prev:true},
+    {n:'레이아웃도면.dwg', t:'DWG', s:'28.2MB', d:'2026-08-20', eq:'EQ-2401', prev:false},
+    {n:'ASAHI SEIKI AP-450 매뉴얼.pdf', t:'PDF', s:'22.7MB', d:'2026-08-18', eq:'EQ-2404', prev:true},
+    {n:'배관도.dxf', t:'DXF', s:'8.9MB', d:'2026-08-18', eq:'EQ-2404', prev:false},
+    {n:'대성정밀 계약서(초안).hwp', t:'HWP', s:'1.2MB', d:'2026-08-21', eq:'—', prev:false},
+    {n:'2026 상반기 설비 리스트.xlsx', t:'XLSX', s:'640KB', d:'2026-07-02', eq:'—', prev:false},
+  ];
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">자료실</h1>
+      <div class="page-sub">파일당 기본 30MB 제한 · 대용량 업로드 전용 솔루션 제외</div></div>
+    <div class="actions">
+      <button class="btn" id="bulkDl">선택 일괄 다운로드</button>
+      <button class="btn primary" onclick="toast('목업 — 파일당 30MB 이하 업로드 기준')">＋ 파일 업로드</button></div>
+  </div>
+
+  <div class="filters">
+    <div class="field" style="min-width:220px"><span class="ic">🔍</span><input placeholder="파일명 검색"></div>
+    <button class="chip on">전체</button><button class="chip">PDF</button><button class="chip">도면(DWG·DXF)</button><button class="chip">문서</button><button class="chip">사진</button>
+  </div>
+
+  <div class="card"><div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th style="width:34px"><input type="checkbox" id="fAll" style="accent-color:var(--brand)"></th>
+      <th>파일명</th><th>형식</th><th class="num">용량</th><th>연동 설비</th><th>등록일</th><th>미리보기</th></tr></thead>
+    <tbody>${FILES.map(f=>`<tr>
+      <td><input type="checkbox" class="fchk" style="accent-color:var(--brand)"></td>
+      <td class="strong">📄 ${esc(f.n)}</td><td><span class="badge b-gray">${f.t}</span></td>
+      <td class="num">${f.s}</td><td class="muted">${f.eq}</td><td class="muted nowrap">${f.d}</td>
+      <td>${f.prev?'<span class="badge b-green">지원</span>':'<span class="badge b-amber">별도 개발</span>'}</td></tr>`).join('')}</tbody>
+  </table></div></div>
+
+  <div class="dl-note" style="margin-top:14px">
+    ℹ 파일 업로드는 <b>파일당 30MB 이하</b> 기준입니다. 폴더 통째 업로드와 대용량 전용 솔루션은 이번 범위에서 제외합니다.<br>
+    기존 자료(약 500GB, 폴더 17,000개+)는 고객 데이터 등 필요한 자료를 <b>선별해 이전 범위</b>를 정합니다.
+  </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   7. 회계 관리 (대표자 전용 · 소규모 ERP)
+   ══════════════════════════════════════════════════════════ */
+const ACCOUNT_DASH = {
+  '2025':{income:1026000000,buy:749000000,cost:98400000,profit:178600000},
+  '2026':{income:711000000,buy:522000000,cost:75100000,profit:113900000},
+  '2027':{income:0,buy:0,cost:0,profit:0},
+};
+const ACCOUNT_DATA = {
+  cash:[
+    ['일자','구분','내용','입금','출금','잔액','비고'],
+    ['2026-09-02','입금','대성정밀 계약금','30000000','','30000000','수기 입력'],
+    ['2026-09-05','출금','운송비','','4200000','25800000','수기 입력'],
+    ['2026-09-09','출금','정비비','','1800000','24000000','수기 입력'],
+  ],
+  daily:[
+    ['일자','매출','매입','비용','일별 손익','메모'],
+    ['2026-09-02','30000000','0','0','30000000','수기 입력 예시'],
+    ['2026-09-05','0','0','4200000','-4200000','월별 손익과 자동 연동하지 않음'],
+    ['2026-09-09','0','0','1800000','-1800000',''],
+  ],
+  monthly:[
+    ['월','매출','매입','비용','월별 손익','비고'],
+    ['2026-07','132000000','96000000','12900000','23100000','수기 입력 예시'],
+    ['2026-08','93000000','64000000','8500000','20500000','수기 입력 예시'],
+    ['2026-09','30000000','0','6000000','24000000','일별 손익과 자동 연동하지 않음'],
+  ]
+};
+
+function accountTable(view){
+  const rows = ACCOUNT_DATA[view] || [];
+  if(!rows.length) return '';
+  return `<div class="card"><div class="tbl-wrap"><table class="tbl account-edit">
+    <thead><tr>${rows[0].map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows.slice(1).map((r,ri)=>`<tr>${r.map((v,ci)=>`<td contenteditable="true" data-ar="${ri+1}" data-ac="${ci}">${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table></div></div>`;
+}
+
+function pageAccount(){
+  if(state.role!=='admin'){
+    return `<div class="card"><div class="denied"><div class="lk">🔒</div>
+      <h3>대표자 전용 페이지입니다</h3>
+      <p>회계 관리는 대표자 계정만 열람할 수 있습니다.<br>상단 우측에서 <b>대표자</b>로 전환하면 화면을 확인할 수 있습니다. (목업 시연용)</p></div></div>`;
+  }
+  const d = ACCOUNT_DASH[state.sheetYear] || ACCOUNT_DASH['2026'];
+  const names={dashboard:'회계 대시보드',cash:'금전출납부',daily:'일별 손익',monthly:'월별 손익'};
+  let body='';
+  if(state.accountView==='dashboard'){
+    body = `<div class="kpis" style="margin-bottom:14px">
+      <div class="kpi"><div class="k-label">연도 누적 매출</div><div class="k-value">${만(d.income)}<span class="unit">만원</span></div></div>
+      <div class="kpi"><div class="k-label">연도 누적 매입</div><div class="k-value">${만(d.buy)}<span class="unit">만원</span></div></div>
+      <div class="kpi"><div class="k-label">연도 누적 비용</div><div class="k-value">${만(d.cost)}<span class="unit">만원</span></div></div>
+      <div class="kpi"><div class="k-label">연도 누적 손익</div><div class="k-value" style="color:var(--ok)">${만(d.profit)}<span class="unit">만원</span></div></div>
+    </div>
+    <div class="card"><div class="card-body">
+      <div class="lock-note" style="margin:0"><span>ℹ</span><div>이 화면은 <b>연도별 누적 합계</b>를 보는 대표자용 대시보드입니다. 전년도 탭으로 이동해 과거 자료를 조회할 수 있습니다. 실제 숫자는 시연용 더미입니다.</div></div>
+    </div></div>`;
+  } else {
+    body = `${accountTable(state.accountView)}
+      <div class="dl-note" style="margin-top:12px">ℹ <b>대표 수기 입력</b> 기준입니다. 일별 손익과 월별 손익은 <b>자동 연동하지 않습니다</b>. 필요한 계산은 단순 사칙연산 수준의 보조 기능으로 제한합니다.</div>`;
+  }
+
+  return `<div class="page-head">
+    <div><h1 class="page-title">회계 관리 <span class="badge b-violet" style="vertical-align:middle">대표자 전용</span></h1>
+      <div class="page-sub">소규모 ERP · 공유 Excel 3종 양식 기준 · 대표 수기 입력 · 일/월 자동 연동 제외</div></div>
+    <div class="actions"><button class="btn" onclick="toast('공유된 회계 Excel 3종 양식을 기준으로 구현합니다')">Excel 3종 기준</button></div>
+  </div>
+  <div class="lock-note"><span>🔒</span><div><b>대표자만 접근</b>합니다. 항목 추가·삭제는 가능하되 Excel 전체 함수 엔진이 아니라 수기 입력 + 단순 계산 중심으로 구현합니다.</div></div>
+  <div class="tabs" style="margin-bottom:12px">
+    ${Object.entries(names).map(([k,n])=>`<button class="tab ${state.accountView===k?'on':''}" data-av="${k}">${n}</button>`).join('')}
+  </div>
+  <div class="tabs" style="margin-bottom:14px">
+    ${['2025','2026','2027'].map(y=>`<button class="tab ${state.sheetYear===y?'on':''}" data-year="${y}">${y}년</button>`).join('')}
+  </div>
+  ${body}`;
+}
+
+function bindAccount(){
+  $$('.tab[data-av]').forEach(b=>b.onclick=()=>{ state.accountView=b.dataset.av; render(); });
+  $$('.tab[data-year]').forEach(b=>b.onclick=()=>{ state.sheetYear=b.dataset.year; render(); });
+  $$('.account-edit td[contenteditable]').forEach(td=>td.onblur=()=>{
+    const rows=ACCOUNT_DATA[state.accountView];
+    if(rows && rows[+td.dataset.ar]) rows[+td.dataset.ar][+td.dataset.ac]=td.textContent.trim();
+    toast('수기 입력 값이 저장되었습니다 (목업)');
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   8. 캘린더
+   ══════════════════════════════════════════════════════════ */
+function pageCalendar(){
+  const EVENTS = {
+    3:[['선적 · AP-450','#6b4fbb']], 7:[['통관 예정','#0e7490']],
+    12:[['대성정밀 방문','#1b4f9c']], 18:[['창고 입고 · NC1-200D','#0f8a53']],
+    20:[['판매 확정 · 대성정밀','#0f8a53']], 23:[['한신금속 현장 실사','#b5730a']],
+    24:[['영업 미팅 · 똑똑한개발자','#1b4f9c']], 28:[['9월 선적 준비','#c1362f']],
+  };
+  const first = new Date(2026,7,1).getDay();
+  let cells = '';
+  for(let i=0;i<first;i++) cells += `<div class="dc dim"></div>`;
+  for(let d=1; d<=31; d++){
+    const ev = (EVENTS[d]||[]).map(([t,c])=>`<div class="ev" style="background:${c}1a;color:${c}">${t}</div>`).join('');
+    cells += `<div class="dc ${d===24?'today':''}"><div class="dn">${d}</div>${ev}</div>`;
+  }
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">캘린더</h1><div class="page-sub">선적 · 통관 · 방문 일정 통합 관리</div></div>
+    <div class="actions"><div class="seg"><button>◀</button><button class="on">2026년 8월</button><button>▶</button></div>
+      <button class="btn primary" onclick="toast('목업 — 일정 등록은 시연되지 않습니다')">＋ 일정 등록</button></div>
+  </div>
+  <div class="card"><div class="card-body">
+    <div class="cal">${['일','월','화','수','목','금','토'].map(d=>`<div class="dh">${d}</div>`).join('')}${cells}</div>
+  </div></div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   9. 신규(공란) 카테고리
+   ══════════════════════════════════════════════════════════ */
+function pageNewCat(){
+  return `<div class="card"><div class="empty">
+    <div class="ic">＋</div><h3>아직 설정되지 않은 카테고리입니다</h3>
+    <p style="font-size:13px">세정기 등 신규 사업 추가 시 중고 설비 / 아사히 세이키와 <b>동일한 폴더 구조</b>로 확장됩니다.<br>
+    카테고리 추가·삭제는 상단 내비게이션에서 자유롭게 가능합니다.</p>
+    <button class="btn primary" style="margin-top:14px" onclick="document.getElementById('catAdd').click()">이 카테고리 설정하기</button>
+  </div></div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   렌더러
+   ══════════════════════════════════════════════════════════ */
+function render(){
+  renderCats(); renderSide();
+  const m = $('#main');
+
+  if(state.cat==='calendar'){ m.innerHTML = pageCalendar(); window.scrollTo(0,0); return; }
+  if(state.cat==='asahi'){ state.page='goods'; m.innerHTML = pageDrive(); bindDrive(); return; }
+  if(state.cat==='new' && state.page!=='account' && state.page!=='customer'){ m.innerHTML = pageNewCat(); return; }
+
+  switch(state.page){
+    case 'dash':     m.innerHTML = pageDash(); break;
+    case 'goods':
+      if(state.cat==='asahi'){ m.innerHTML = pageDrive(); bindDrive(); }
+      else m.innerHTML = pageGoods();
+      break;
+    case 'quote':    m.innerHTML = pageQuote(); break;
+    case 'sales':    m.innerHTML = pageSales(); break;
+    case 'customer': m.innerHTML = pageCustomer(); bindCustomer(); break;
+    case 'files':    m.innerHTML = pageFiles(); bindFiles(); break;
+    case 'account':  m.innerHTML = pageAccount(); if(state.role==='admin') bindAccount(); break;
+    default:         m.innerHTML = pageDash();
+  }
+
+  // 공통 바인딩
+  $$('[data-eq]').forEach(el=> el.onclick = ()=> openEquip(el.dataset.eq));
+  $$('[data-deal]').forEach(el=> el.onclick = ()=> openDeal(el.dataset.deal));
+  $$('[data-go]').forEach(el=> el.onclick = ()=>{ state.page = el.dataset.go; render(); });
+  $$('[data-view]').forEach(el=> el.onclick = ()=>{ state.goodsView = el.dataset.view; render(); });
+  $$('[data-stage]').forEach(el=> el.onclick = ()=>{ state.goodsFilter = el.dataset.stage; render(); });
+  if($('#statBtn')) $('#statBtn').onclick = openStats;
+  if($('#newDeal')) $('#newDeal').onclick = ()=> openModal(`
+    <div class="modal-head"><div><h3 class="modal-title">영업 건 생성</h3>
+      <div class="modal-sub">복수의 설비를 하나의 영업 건으로 묶어 관리합니다</div></div>
+      <button class="x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body"><div class="form-grid">
+      <div class="f"><label>영업 건명 *</label><input placeholder="예: 대성정밀 프레스 2대 건"></div>
+      <div class="f"><label>고객사 *</label><select>${[...new Set(CUSTOMERS.map(c=>c.co))].map(c=>`<option>${c}</option>`).join('')}</select></div>
+      <div class="f"><label>담당자</label><select><option>서장원</option><option>김담당</option></select></div>
+    </div>
+    <div class="f" style="margin-top:12px"><label>최초 메모</label><textarea rows="3" placeholder="상담 내용, 요구 조건 등"></textarea></div></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">취소</button>
+      <button class="btn primary" onclick="closeModal();toast('목업 — 실제로 생성되지 않습니다')">생성</button></div>`,'narrow');
+}
+
+function bindFiles(){
+  $('#fAll').onchange = e=> $$('.fchk').forEach(c=> c.checked = e.target.checked);
+  $('#bulkDl').onclick = ()=>{
+    const n = $$('.fchk').filter(c=>c.checked).length;
+    if(!n) return toast('다운로드할 파일을 선택해 주세요');
+    toast(`${n}개 파일 압축 다운로드를 시작합니다 (목업 · 최대 30개 제한)`);
+  };
+}
+
+render();
+</script>
+<script src="./app.full.js"></script>
+</body>
+</html>
