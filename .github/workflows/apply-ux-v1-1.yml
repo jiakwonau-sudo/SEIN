@@ -1,0 +1,110 @@
+name: Apply UX v1.1 snapshot
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/apply-ux-v1-1.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch current FULL and create immutable v1.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path("site/full/index.html")
+          s=p.read_text()
+          s=s.replace("FULL v1.0","FULL v1.1")
+          if 'ux.v1.1.css' not in s:
+              s=s.replace("</head>",'<link rel="stylesheet" href="./ux.v1.1.css">\n</head>')
+          if 'ux.v1.1.js' not in s:
+              s=s.replace("</body>",'<script src="./ux.v1.1.js"></script>\n</body>')
+          p.write_text(s)
+
+          j=Path("site/full/app.full.js")
+          t=j.read_text().replace("const VERSION='v1.0-full';","const VERSION='v1.1-full';").replace("FULL v1.0","FULL v1.1")
+          j.write_text(t)
+
+          h=Path("site/index.html")
+          z=h.read_text()
+          if "v1-1-full" not in z:
+              old='<a class="card" href="./v1-0-full/"><b>v1.0 FULL</b><p class="muted">불변 복구 스냅샷</p></a>'
+              new='<a class="card" href="./v1-1-full/"><b>v1.1 FULL · UX</b><p class="muted">UX 개선 불변 스냅샷</p></a>'+old
+              z=z.replace(old,new)
+          h.write_text(z)
+          PY
+
+          rm -rf src versions/v1.1-full site/v1-1-full
+          mkdir -p src versions/v1.1-full site/v1-1-full
+          cp site/full/* src/
+          cp site/full/* versions/v1.1-full/
+          cp site/full/* site/v1-1-full/
+
+          cat > VERSION <<'EOF'
+          v1.1-full
+          baseline=mockup-v0.2-after-kickoff
+          current_site=site/full
+          immutable_site=site/v1-1-full
+          previous_immutable=site/v1-0-full
+          EOF
+
+          cat > SPEC.md <<'EOF'
+          # SEIN FULL SYSTEM v1.1
+
+          Baseline: 미팅 후 받은 Mockup v0.2를 보존하고 전체 요구사항 기능 레이어를 확장.
+
+          ## UX v1.1
+          - 찾기 → 열기 → 수정 → 연결 → 저장 → 다음 행동
+          - 대시보드 6단계 업무 흐름
+          - 빠른 설비/고객/영업 진입
+          - 설비·고객·영업·견적·일정 저장 후 다음 행동 제안
+          - 통합검색 / 자동저장 상태 / 모바일 하단 내비
+
+          ## 구현 상태
+          - B-001~B-011: 브라우저 저장형 기능 구현
+          - I-001 Gmail: 큐/분할/제외 흐름 구현, 실제 OAuth 전송 미연결
+          - I-002 환율: 수동 fallback 구현, 실제 하나은행 연동 미연결
+          - I-003 파일/영상/링크: 구현 범위 내 처리
+          - I-004 고객 XLSX/CSV Import: 구현
+          - I-005 Legacy CSV/JSON Pilot: 구현
+          - 운영 DB: 미연결, localStorage + IndexedDB 검증판
+          EOF
+          cp SPEC.md versions/v1.1-full/SPEC.md
+
+          cat > JQA.md <<'EOF'
+          # JQA RELEASE GATE v1.1
+          - HTTP: /, /original/, /full/, /v1-1-full/
+          - login
+          - equipment create
+          - customer create
+          - sales create with equipment
+          - UX next-action after save
+          - mobile bottom nav
+          - console/page errors
+          EOF
+          cp JQA.md versions/v1.1-full/JQA.md
+
+          cat > RESTORE.md <<'EOF'
+          # Restore v1.1
+          - Immutable runnable snapshot: site/v1-1-full/
+          - Source snapshot: versions/v1.1-full/
+          - Browser data: JSON export/import
+          - Uploaded files: IndexedDB
+          - Limitation: XLSX parser currently uses jsDelivr CDN, so XLSX parsing is not fully offline/self-contained yet.
+          EOF
+          cp RESTORE.md versions/v1.1-full/RESTORE.md
+
+      - name: Commit snapshot
+        run: |
+          git config user.name "JiaKwonAU"
+          git config user.email "jia.kwon.au@gmail.com"
+          git add site src versions VERSION SPEC.md JQA.md RESTORE.md
+          git commit -m "feat: publish immutable v1.1 UX full snapshot"
+          git push
