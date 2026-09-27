@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 var V=window.SEIN_V12,S=window.SEIN_INTERNAL;if(!V||!S)return;
-window.SEIN_HARDENING={iteration:1,version:'v1.3-candidate'};
+window.SEIN_HARDENING={iteration:10,version:'v1.3.0-full'};
 
 /* I1: equipment memo permission UX */
 if(S.getOpenEquipFull&&S.setOpenEquipFull){
