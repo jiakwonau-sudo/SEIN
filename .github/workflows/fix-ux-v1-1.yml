@@ -1,0 +1,42 @@
+name: Fix UX v1.1 core contamination
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/fix-ux-v1-1.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove duplicated malformed UX tail
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path("site/full/app.full.js")
+          s=p.read_text()
+          marker="\n\n\n/* ══════════════════════════════════════════════════════════\n   UX v1.1 — 찾기"
+          if marker in s:
+              s=s.split(marker,1)[0].rstrip()+"\n"
+              p.write_text(s)
+          else:
+              raise SystemExit("contamination marker not found")
+          PY
+          cp site/full/app.full.js src/app.full.js
+          cp site/full/app.full.js site/v1-1-full/app.full.js
+          cp site/full/app.full.js versions/v1.1-full/app.full.js
+          node --check site/full/app.full.js
+          node --check site/full/ux.v1.1.js
+      - name: Commit fix
+        run: |
+          git config user.name "JiaKwonAU"
+          git config user.email "jia.kwon.au@gmail.com"
+          git add site/full/app.full.js src/app.full.js site/v1-1-full/app.full.js versions/v1.1-full/app.full.js
+          git commit -m "fix: remove malformed duplicated UX code from core"
+          git push
