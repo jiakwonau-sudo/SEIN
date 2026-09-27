@@ -31,7 +31,8 @@ jobs:
           check "/original/" "세인코퍼레이션 내부 관리 시스템"
           check "/full/" "세인코퍼레이션 통합 관리 시스템"
           check "/v1-0-full/" "세인코퍼레이션 통합 관리 시스템"
-          check "/v1-1-full/" "세인코퍼레이션 통합 관리 시스템"\n          check "/v1-1-1-full/" "세인코퍼레이션 통합 관리 시스템"
+          check "/v1-1-full/" "세인코퍼레이션 통합 관리 시스템"
+          check "/v1-1-1-full/" "세인코퍼레이션 통합 관리 시스템"
           curl -fsSL --retry 12 --retry-delay 2 "$BASE/full/app.full.js" | grep -F "sein.full.v1.data" >/dev/null
           curl -fsSL --retry 12 --retry-delay 2 "$BASE/full/app.full.css" | grep -F "login-gate" >/dev/null
           echo "PASS assets"
