@@ -27,5 +27,5 @@ jobs:
           }
           check "https://jiakwonau-sudo.github.io/SEIN/" "SEIN 통합 관리 시스템"
           check "https://jiakwonau-sudo.github.io/SEIN/original/" "세인코퍼레이션 내부 관리 시스템"
-          check "https://jiakwonau-sudo.github.io/SEIN/full/" "FULL v1.2.0"
-          check "https://jiakwonau-sudo.github.io/SEIN/v1-2-0-full/" "FULL v1.2.0"
+          check "https://jiakwonau-sudo.github.io/SEIN/full/" "FULL v1.3.0"
+          check "https://jiakwonau-sudo.github.io/SEIN/v1-3-0-full/" "FULL v1.3.0"
