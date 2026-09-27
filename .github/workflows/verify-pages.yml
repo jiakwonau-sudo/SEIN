@@ -1,0 +1,31 @@
+name: Verify SEIN GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/verify-pages.yml"
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check published URLs
+        shell: bash
+        run: |
+          set -uo pipefail
+          check() {
+            url="$1"
+            echo "=== $url ==="
+            code="$(curl -L -sS -o /tmp/body.html -w '%{http_code}' "$url" || true)"
+            echo "HTTP=$code"
+            head -c 220 /tmp/body.html | tr '\n' ' '
+            echo
+          }
+          check "https://jiakwonau-sudo.github.io/SEIN/"
+          check "https://jiakwonau-sudo.github.io/SEIN/original/"
+          check "https://jiakwonau-sudo.github.io/SEIN/full/"
+          check "https://jiakwonau-sudo.github.io/SEIN/v1-0-full/"
+          check "https://jiakwonau-sudo.github.io/SEIN/v1-1-full/"
+          check "https://jiakwonau-sudo.github.io/sein/"
