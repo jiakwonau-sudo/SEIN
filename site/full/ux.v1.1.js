@@ -84,7 +84,7 @@
     if(save){
       const id=save.id;
       setTimeout(()=>{
-        if(document.getElementById('overlay')?.classList.contains('open'))return;
+        if(document.getElementById(id))return;
         if(id==='efSave')next('설비가 저장됐습니다','상세자료를 확인하거나 고객·영업으로 이어가세요.',[
           {id:'equipment',label:'설비 목록'},{id:'customer',label:'고객 연결'},{id:'new-deal',label:'영업건 만들기'}]);
         else if(id==='cfSave')next('고객 정보가 저장됐습니다','고객 등록에서 끝내지 않고 바로 영업으로 이어갈 수 있습니다.',[
