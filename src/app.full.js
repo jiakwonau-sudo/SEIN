@@ -230,7 +230,18 @@ window.SEIN_INTERNAL={
   render,
   toast,
   openModal,
-  closeModal
+  closeModal,
+  setBindAccountFull:fn=>{bindAccountFull=fn},
+  setPageFilesFull:fn=>{pageFilesFull=fn},
+  setBindFilesFull:fn=>{bindFilesFull=fn},
+  setPageOps:fn=>{pageOps=fn},
+  setBindOps:fn=>{bindOps=fn},
+  setImportCustomers:fn=>{importCustomers=fn},
+  setImportLegacy:fn=>{importLegacy=fn},
+  setOpenQuoteForm:fn=>{openQuoteForm=fn},
+  setBindQuoteFull:fn=>{bindQuoteFull=fn},
+  setOpenEquipForm:fn=>{openEquipForm=fn},
+  setOpenEquipFull:fn=>{openEquipFull=fn}
 };
 
 })();
