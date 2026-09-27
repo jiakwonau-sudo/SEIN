@@ -44,7 +44,7 @@ jobs:
       - name: Browser JQA
         shell: bash
         run: |
-          cat > /tmp/jqa.js <<'NODE'
+          cat > jqa.js <<'NODE'
           const { chromium } = require('playwright');
           const assert = (cond, msg) => { if (!cond) throw new Error(msg); };
           (async()=>{
@@ -112,6 +112,5 @@ jobs:
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
-          node /tmp/jqa.js
+          node jqa.js
 
-# trigger live verification
