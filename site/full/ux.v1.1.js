@@ -62,8 +62,7 @@
   }
   function enhance(){
     const main=document.getElementById('main');
-    if(!main)return;
-    ensureMobileBottom();
+    if(!main)return;\n    ensureMobileBottom();
     const title=main.querySelector('.page-title')?.textContent||'';
     if(title.includes('대시보드')&&!main.querySelector('.ux-flow'))main.prepend(flowCard());
   }
@@ -85,7 +84,7 @@
     if(save){
       const id=save.id;
       setTimeout(()=>{
-        if(document.getElementById(id))return;
+        if(document.getElementById('overlay')?.classList.contains('open'))return;
         if(id==='efSave')next('설비가 저장됐습니다','상세자료를 확인하거나 고객·영업으로 이어가세요.',[
           {id:'equipment',label:'설비 목록'},{id:'customer',label:'고객 연결'},{id:'new-deal',label:'영업건 만들기'}]);
         else if(id==='cfSave')next('고객 정보가 저장됐습니다','고객 등록에서 끝내지 않고 바로 영업으로 이어갈 수 있습니다.',[
@@ -99,6 +98,19 @@
       },180);
     }
   },true);
+
+  window.SEIN_UX_NEXT=function(kind){
+    if(kind==='equipment')next('설비가 저장됐습니다','상세자료를 확인하거나 고객·영업으로 이어가세요.',[
+      {id:'equipment',label:'설비 목록'},{id:'customer',label:'고객 연결'},{id:'new-deal',label:'영업건 만들기'}]);
+    else if(kind==='customer')next('고객 정보가 저장됐습니다','고객 등록에서 끝내지 않고 바로 영업으로 이어갈 수 있습니다.',[
+      {id:'new-deal',label:'영업건 만들기'},{id:'customer',label:'고객 목록'},{id:'search',label:'통합 검색'}]);
+    else if(kind==='sales')next('영업건이 생성됐습니다','견적 또는 영업 상세 흐름으로 이어가세요.',[
+      {id:'sales',label:'영업 목록'},{id:'quote',label:'견적 등록'},{id:'dashboard',label:'현황 보기'}]);
+    else if(kind==='quote')next('견적이 등록됐습니다','다음 영업 행동을 선택하세요.',[
+      {id:'sales',label:'영업 보기'},{id:'dashboard',label:'현황 보기'},{id:'search',label:'관련 항목 찾기'}]);
+    else if(kind==='event')next('일정이 저장됐습니다','관련 업무를 이어서 확인할 수 있습니다.',[
+      {id:'dashboard',label:'현황 보기'},{id:'search',label:'관련 업무 찾기'}]);
+  };
 
   const mo=new MutationObserver(()=>enhance());
   const start=()=>{const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true});enhance();setTimeout(ensureMobileBottom,250)};
