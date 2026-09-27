@@ -1,3 +1,5 @@
-SEIN FULL SYSTEM v1.0
-BASELINE=Mockup v0.2 after 2026-09-17 kickoff
-SNAPSHOT_POLICY=immutable version directories
+v1.1-full
+baseline=mockup-v0.2-after-kickoff
+current_site=site/full
+immutable_site=site/v1-1-full
+previous_immutable=site/v1-0-full
