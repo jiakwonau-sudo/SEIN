@@ -1,4 +1,5 @@
 name: JQA source v1.1.2
+# rerun-current-head
 
 on:
   push:
