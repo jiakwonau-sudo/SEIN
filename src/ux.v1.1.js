@@ -62,7 +62,8 @@
   }
   function enhance(){
     const main=document.getElementById('main');
-    if(!main)return;\n    ensureMobileBottom();
+    if(!main)return;
+    ensureMobileBottom();
     const title=main.querySelector('.page-title')?.textContent||'';
     if(title.includes('대시보드')&&!main.querySelector('.ux-flow'))main.prepend(flowCard());
   }
