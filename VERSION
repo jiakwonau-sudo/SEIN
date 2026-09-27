@@ -1,5 +1,6 @@
-v1.1-full
+v1.1.1-full
 baseline=mockup-v0.2-after-kickoff
 current_site=site/full
-immutable_site=site/v1-1-full
-previous_immutable=site/v1-0-full
+immutable_site=site/v1-1-1-full
+previous_immutable=site/v1-1-full
+reason=JQA runtime binder fix + UX v1.1 preserved
