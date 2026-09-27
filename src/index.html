@@ -615,8 +615,8 @@ const DEALS = [
 
 /* ── 더미 데이터: 매입 진행 ───────────────────────────── */
 const PURCHASES = [
-  {id:'PO-2609-01', name:'KOMATSU E2G-300 매입', amount:52000000, owner:'서장원', status:'진행'},
-  {id:'PO-2609-02', name:'AIDA NC1-110 매입', amount:21000000, owner:'김담당', status:'진행'},
+  {id:'PO-2609-01', cat:'used', name:'KOMATSU E2G-300 매입', amount:52000000, owner:'서장원', status:'진행'},
+  {id:'PO-2609-02', cat:'used', name:'AIDA NC1-110 매입', amount:21000000, owner:'김담당', status:'진행'},
 ];
 
 /* ── 더미 데이터: 고객 ───────────────────────────────── */
@@ -747,9 +747,10 @@ $$('.role-switch button').forEach(b=> b.onclick = ()=>{
    ══════════════════════════════════════════════════════════ */
 function pageDash(){
   const list = catEquip();
-  const purchaseOpen = PURCHASES.filter(p=>p.status==='진행');
-  const salesOpen = DEALS.filter(d=>d.status!=='확정');
-  const salesDone = DEALS.filter(d=>d.status==='확정');
+  const purchaseOpen = PURCHASES.filter(p=>p.status==='진행' && (!p.cat || p.cat===state.cat));
+  const relevantDeals = DEALS.filter(d=>d.equips.some(id=>eqById(id)?.cat===state.cat));
+  const salesOpen = relevantDeals.filter(d=>d.status!=='확정');
+  const salesDone = relevantDeals.filter(d=>d.status==='확정');
   const purchaseAmt = purchaseOpen.reduce((a,p)=>a+p.amount,0);
   const plannedAmt = salesOpen.reduce((a,d)=>a+(d.plannedSell||0),0);
   const actualAmt = salesDone.reduce((a,d)=>a+d.sell,0);
@@ -792,7 +793,7 @@ function pageDash(){
           <button class="btn sm" data-go="sales">영업 관리에서 보기</button></div>
         <div class="tbl-wrap"><table class="tbl">
           <thead><tr><th>영업 건</th><th>고객사</th><th>상태</th><th class="num">매입가</th><th class="num">판매 예정가</th><th class="num">실제 판매가</th><th class="num">확정 수익</th></tr></thead>
-          <tbody>${DEALS.map(d=>`
+          <tbody>${relevantDeals.map(d=>`
             <tr class="clickable" data-deal="${d.id}">
               <td class="strong">${d.name}</td><td>${d.customer}</td>
               <td>${d.status==='확정'?'<span class="badge b-green">판매 확정</span>':'<span class="badge b-amber">판매 진행</span>'}</td>
