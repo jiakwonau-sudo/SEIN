@@ -1255,8 +1255,10 @@ function openBind(d){
   $('#bindOk').onclick = ()=>{
     const picked = $$('#modal input:checked').map(c=>c.value);
     if(!picked.length) return toast('묶을 설비를 선택해 주세요');
-    picked.forEach(id=>{ d.equips.push(id); d.buy += (eqById(id)?.buy||0); });
-    openDeal(d.id); toast(`${picked.length}대를 영업 건에 묶었습니다`);
+    const add = picked.filter(id=>!d.equips.includes(id));
+    if(!add.length) return toast('선택한 설비가 이미 모두 묶여 있습니다');
+    add.forEach(id=>{ d.equips.push(id); d.buy += (eqById(id)?.buy||0); });
+    openDeal(d.id); toast(`${add.length}대를 영업 건에 묶었습니다`);
   };
 }
 
@@ -1272,15 +1274,17 @@ function confirmDeal(id){
         <div class="f"><label>실제 매입가 (원)</label><input id="cBuy" value="${W(d.buy)}"></div>
         <div class="f"><label>판매 예정가 (원)</label><input value="${d.plannedSell?W(d.plannedSell):''}" readonly></div>
         <div class="f"><label>실제 판매가 (원)</label><input id="cSell" placeholder="판매 확정 금액 입력"></div>
-        <div class="f"><label>확정일</label><input type="date" value="2026-08-24"></div>
+        <div class="f"><label>확정일</label><input id="cDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
       </div>
     </div>
     <div class="modal-foot"><button class="btn" onclick="openDeal('${id}')">취소</button>
       <button class="btn ok" id="cOk">확정</button></div>`,'narrow');
   $('#cOk').onclick = ()=>{
-    const v = Number(($('#cSell').value||'').replace(/[^\d]/g,''));
-    if(!v) return toast('실제 판매가를 입력해 주세요');
-    d.sell = v; d.status='확정'; d.confirmedAt='2026-08-24';
+    const sell = Number(($('#cSell').value||'').replace(/[^\d]/g,''));
+    const buy = Number(($('#cBuy').value||'').replace(/[^\d]/g,''));
+    const confirmedAt = $('#cDate').value || new Date().toISOString().slice(0,10);
+    if(!sell) return toast('실제 판매가를 입력해 주세요');
+    d.buy = buy; d.sell = sell; d.status='확정'; d.confirmedAt=confirmedAt;
     closeModal(); render(); toast('영업 건이 확정되었습니다 — 대시보드에 반영됩니다');
   };
 }
