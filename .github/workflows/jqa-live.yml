@@ -74,7 +74,7 @@ jobs:
             await page.waitForSelector('.ux-next');
             assert((await page.locator('.ux-next').innerText()).includes('다음 행동'),'UX next action missing');
             console.log('PASS UX next action');
-            await page.locator('[data-ux-close]').click();
+            await page.locator('[data-next-close]').click();
 
             await page.locator('[data-page="customer"]:visible').first().click();
             await page.waitForSelector('#newCustomer');
