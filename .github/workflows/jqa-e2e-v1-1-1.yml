@@ -45,8 +45,9 @@ jobs:
               if(!(await page.locator('#loginGate').count()))pass('login');else fail('login');
 
               // Equipment CRUD
-              const eqAdd=page.getByRole('button',{name:/설비 등록/}).first();
-              await eqAdd.click();
+              await page.locator('[data-page="goods"]:visible').first().click();
+              await page.waitForSelector('#newEquip');
+              await page.locator('#newEquip').click();
               await page.locator('#efModel').fill('JQA PRESS 111');
               await page.locator('#efNo').fill('JQA-111');
               await page.locator('#efSave').click(); await page.waitForTimeout(300);
