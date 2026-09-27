@@ -126,7 +126,7 @@ function postRender(){
   $$('[data-go]').forEach(el=>el.onclick=()=>{state.page=el.dataset.go;history.pushState({page:state.page},'',`#${state.cat}/${state.page}`);render()});
   $$('[data-view]').forEach(el=>el.onclick=()=>{state.goodsView=el.dataset.view;render()});
   $$('[data-stage]').forEach(el=>el.onclick=()=>{state.goodsFilter=el.dataset.stage;render()});
-  bindGoodsFull();bindQuoteFull();bindSalesFull();bindCustomerFull();bindFilesFull();if(state.page==='account'&&state.role==='admin')bindAccountFull();if(state.page==='ops')bindOps();enhanceChrome();saveAll(false);
+  if(state.page==='goods')bindGoodsFull();if(state.page==='quote')bindQuoteFull();if(state.page==='sales')bindSalesFull();if(state.page==='customer')bindCustomerFull();if(state.page==='files')bindFilesFull();if(state.page==='account'&&state.role==='admin')bindAccountFull();if(state.page==='ops')bindOps();enhanceChrome();saveAll(false);
 }
 const oldRenderSide=renderSide;
 renderSide=function(){oldRenderSide();$$('#side .nav[data-page],#pillNav .chip[data-page]').forEach(b=>{const p=b.dataset.page;if(p==='account'||p==='ops'){if(currentUser?.role!=='admin')b.style.display='none'}b.onclick=()=>{state.page=p;history.pushState({page:p},'',`#${state.cat}/${p}`);render()}})};
