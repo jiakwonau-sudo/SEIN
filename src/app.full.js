@@ -1,7 +1,7 @@
 /* SEIN FULL SYSTEM v1.0 — functional enhancement layer */
 (()=>{
 'use strict';
-const VERSION='v1.1.2-full';
+const VERSION='v1.2.0-full';
 const STORE_KEY='sein.full.v1.data';
 const SESSION_KEY='sein.full.v1.user';
 const MAX_FILE=30*1024*1024;
@@ -71,7 +71,7 @@ async function deleteBlob(id){const d=await db();return new Promise((res,rej)=>{
 async function downloadBlob(id,name){const blob=await getBlob(id);if(!blob)return toast('이 파일은 목업 메타데이터라 실제 원본이 없습니다');const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)}
 
 function addLoginGate(){
-  const el=document.createElement('div');el.id='loginGate';el.className='login-gate';el.innerHTML=`<div class="login-card"><div class="login-brand"><div class="mark">SEIN</div><div><h1>통합 관리 시스템</h1><p>FULL v1.1.2 · 요구사항 통합 검증용</p></div></div><div class="user-grid">${USERS.map(u=>`<button class="user-card ${u.id==='ceo'?'on':''}" data-user="${u.id}"><b>${u.name}</b><span>${u.label}</span></button>`).join('')}</div><div class="pin-row"><input id="loginPin" type="password" inputmode="numeric" placeholder="PIN 1234" value="1234"><button class="btn primary" id="loginBtn">로그인</button></div><div class="muted" style="font-size:11px;margin-top:10px">현재 버전은 브라우저 저장형 검증판입니다. 운영 DB는 데이터 계층 교체 방식으로 연결합니다.</div></div>`;document.body.appendChild(el);document.body.classList.add('full-locked');
+  const el=document.createElement('div');el.id='loginGate';el.className='login-gate';el.innerHTML=`<div class="login-card"><div class="login-brand"><div class="mark">SEIN</div><div><h1>통합 관리 시스템</h1><p>FULL v1.2.0 · 요구사항 통합 검증용</p></div></div><div class="user-grid">${USERS.map(u=>`<button class="user-card ${u.id==='ceo'?'on':''}" data-user="${u.id}"><b>${u.name}</b><span>${u.label}</span></button>`).join('')}</div><div class="pin-row"><input id="loginPin" type="password" inputmode="numeric" placeholder="PIN 1234" value="1234"><button class="btn primary" id="loginBtn">로그인</button></div><div class="muted" style="font-size:11px;margin-top:10px">현재 버전은 브라우저 저장형 검증판입니다. 운영 DB는 데이터 계층 교체 방식으로 연결합니다.</div></div>`;document.body.appendChild(el);document.body.classList.add('full-locked');
   el.querySelectorAll('[data-user]').forEach(b=>b.onclick=()=>{selectedLogin=b.dataset.user;el.querySelectorAll('[data-user]').forEach(x=>x.classList.toggle('on',x===b))});
   el.querySelector('#loginBtn').onclick=login;el.querySelector('#loginPin').onkeydown=e=>{if(e.key==='Enter')login()};
 }
@@ -133,7 +133,7 @@ renderSide=function(){oldRenderSide();$$('#side .nav[data-page],#pillNav .chip[d
 
 function pageDashFull(){
   let h=pageDash();h=h.replace('연동 확인 중',`${W(exchange.usdkrw)}원`).replace('실제 연동 방식 검토 필요',`${exchange.source} · ${exchange.updatedAt}`);
-  h=h.replace('<div class="page-sub">','<div class="page-sub"><span class="full-chip">FULL v1.1.2</span> ');
+  h=h.replace('<div class="page-sub">','<div class="page-sub"><span class="full-chip">FULL v1.2.0</span> ');
   return h;
 }
 
@@ -209,4 +209,28 @@ window.addEventListener('beforeunload',()=>saveAll(false));
 hydrate();
 CUSTOMERS.forEach(c=>{if(!c.id)c.id=uid('CU')});
 if(restoreSession()){const [cat,page]=location.hash.replace('#','').split('/');if(cat&&canCat(cat))state.cat=cat;if(page)state.page=page;render();enhanceChrome()}else addLoginGate();
+window.SEIN_INTERNAL={
+  getCurrentUser:()=>currentUser,
+  getAppFiles:()=>appFiles,
+  setAppFiles:v=>{appFiles=v},
+  getMailQueue:()=>mailQueue,
+  getMigrationRuns:()=>migrationRuns,
+  getExchange:()=>exchange,
+  setExchange:v=>{exchange=v},
+  getAudit:()=>audit,
+  saveAll,
+  log,
+  uid,
+  safeNum,
+  fmtFile,
+  putBlob,
+  getBlob,
+  deleteBlob,
+  parseCSV,
+  render,
+  toast,
+  openModal,
+  closeModal
+};
+
 })();
