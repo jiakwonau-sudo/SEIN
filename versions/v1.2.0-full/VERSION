@@ -1,0 +1,7 @@
+v1.2.0-full
+baseline=mockup-v0.2-after-kickoff
+current_site=site/full
+immutable_site=site/v1-2-0-full
+previous_immutable=site/v1-1-1-full
+external_integrations=MOCK
+release_type=browser-functional full prototype
