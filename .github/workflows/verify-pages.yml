@@ -14,18 +14,18 @@ jobs:
       - name: Check published URLs
         shell: bash
         run: |
-          set -uo pipefail
+          set -euo pipefail
           check() {
             url="$1"
+            marker="$2"
             echo "=== $url ==="
-            code="$(curl -L -sS -o /tmp/body.html -w '%{http_code}' "$url" || true)"
+            body="$(mktemp)"
+            code="$(curl -L -sS --retry 8 --retry-delay 2 -o "$body" -w '%{http_code}' "$url")"
             echo "HTTP=$code"
-            head -c 220 /tmp/body.html | tr '\n' ' '
-            echo
+            test "$code" = "200"
+            grep -F "$marker" "$body" >/dev/null
           }
-          check "https://jiakwonau-sudo.github.io/SEIN/"
-          check "https://jiakwonau-sudo.github.io/SEIN/original/"
-          check "https://jiakwonau-sudo.github.io/SEIN/full/"
-          check "https://jiakwonau-sudo.github.io/SEIN/v1-0-full/"
-          check "https://jiakwonau-sudo.github.io/SEIN/v1-1-full/"
-          check "https://jiakwonau-sudo.github.io/sein/"
+          check "https://jiakwonau-sudo.github.io/SEIN/" "SEIN 통합 관리 시스템"
+          check "https://jiakwonau-sudo.github.io/SEIN/original/" "세인코퍼레이션 내부 관리 시스템"
+          check "https://jiakwonau-sudo.github.io/SEIN/full/" "FULL v1.2.0"
+          check "https://jiakwonau-sudo.github.io/SEIN/v1-2-0-full/" "FULL v1.2.0"
