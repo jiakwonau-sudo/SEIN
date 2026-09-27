@@ -86,6 +86,7 @@ jobs:
             await page.waitForSelector('#newDeal');
             await page.locator('#newDeal').click();
             await page.locator('#dName').fill('JQA 영업건');
+            await page.locator('.dealEq').first().check();
             const saveDeal = page.locator('#dSave');
             if(await saveDeal.count()) {
               await saveDeal.click();
