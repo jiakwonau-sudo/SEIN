@@ -46,9 +46,23 @@
       '<div class="ux-quick"><button class="btn primary" data-ux="new-equip">＋ 설비 등록</button><button class="btn" data-ux="new-customer">＋ 고객 등록</button><button class="btn" data-ux="new-deal">＋ 영업건 생성</button><button class="btn" data-ux="files">자료실</button></div>';
     return sec;
   }
+  function ensureMobileBottom(){
+    if(!window.matchMedia('(max-width:820px)').matches)return;
+    let bar=document.querySelector('.mobile-bottom');
+    if(!bar){
+      bar=document.createElement('div');
+      bar.className='mobile-bottom';
+      bar.innerHTML='<button data-mpage="dash">현황</button><button data-mpage="goods">설비</button><button data-mpage="sales">영업</button><button data-mpage="customer">고객</button>';
+      document.body.appendChild(bar);
+    }
+    bar.style.display='grid';
+    bar.querySelectorAll('[data-mpage]').forEach(b=>{
+      b.onclick=()=>nav(b.dataset.mpage);
+    });
+  }
   function enhance(){
     const main=document.getElementById('main');
-    if(!main)return;
+    if(!main)return;\n    ensureMobileBottom();
     const title=main.querySelector('.page-title')?.textContent||'';
     if(title.includes('대시보드')&&!main.querySelector('.ux-flow'))main.prepend(flowCard());
   }
@@ -86,6 +100,6 @@
   },true);
 
   const mo=new MutationObserver(()=>enhance());
-  const start=()=>{const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true});enhance()};
+  const start=()=>{const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true});enhance();setTimeout(ensureMobileBottom,250)};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
