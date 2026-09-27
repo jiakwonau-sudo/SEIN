@@ -1,10 +1,9 @@
-# SEIN Restore
+# SEIN Restore — v1.3.0
 
-## v1.2.1 immutable source
-- Browser snapshot: `site/v1-2-1-full/`
-- Source archive: `versions/v1.2.1-full/`
+- Browser immutable snapshot: `site/v1-3-0-full/`
+- Full source archive: `versions/v1.3.0-full/`
+- Release branch: `release/v1.3.0-full`
 
-## Restore
-해당 immutable 버전의 전체 파일을 `site/full/`과 `src/`에 복원하고 VERSION/SPEC을 같은 버전으로 맞춘다.
+Restore by copying the immutable runtime files back to `site/full/` and `src/`, then restoring VERSION/SPEC/README/RESTORE from the archived version.
 
-v1.2.1의 기능은 v1.2.0과 동일하며, 차이는 typography/CSS refinement다.
+Browser data backup is exported from 운영 도구. Uploaded file bytes remain in IndexedDB until a production storage layer is connected.
