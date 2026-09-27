@@ -240,6 +240,8 @@ window.SEIN_INTERNAL={
   setImportLegacy:fn=>{importLegacy=fn},
   setOpenQuoteForm:fn=>{openQuoteForm=fn},
   setBindQuoteFull:fn=>{bindQuoteFull=fn},
+  getOpenEquipForm:()=>openEquipForm,
+  getOpenEquipFull:()=>openEquipFull,
   setOpenEquipForm:fn=>{openEquipForm=fn},
   setOpenEquipFull:fn=>{openEquipFull=fn}
 };
