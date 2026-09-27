@@ -1,0 +1,121 @@
+name: JQA source v1.1.2
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/jqa-source-v1-1-2.yml"
+  workflow_dispatch:
+
+jobs:
+  source-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm i playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+      - name: Serve source
+        run: |
+          python3 -m http.server 8080 --directory site >/tmp/sein-http.log 2>&1 &
+          for i in {1..20}; do curl -fsS http://127.0.0.1:8080/full/ >/dev/null && exit 0; sleep 1; done
+          cat /tmp/sein-http.log
+          exit 1
+      - name: Browser source JQA
+        run: |
+          node <<'NODE'
+          const {chromium}=require('playwright');
+          const assert=(c,m)=>{if(!c)throw new Error(m)};
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:1440,height:1000}});
+            const errors=[];
+            page.on('pageerror',e=>errors.push('pageerror:'+e.message));
+            page.on('console',m=>{if(m.type()==='error')errors.push('console:'+m.text())});
+            const base='http://127.0.0.1:8080/full/';
+            let r=await page.goto(base,{waitUntil:'networkidle'});
+            assert(r&&r.ok(),'HTTP');
+            console.log('PASS HTTP');
+            await page.locator('#loginBtn').click();
+            await page.waitForSelector('#loginGate',{state:'detached'});
+            console.log('PASS login');
+
+            await page.locator('[data-page="goods"]:visible').first().click();
+            await page.waitForSelector('#newEquip');
+            await page.locator('#newEquip').click();
+            await page.locator('#efModel').fill('JQA SOURCE PRESS');
+            await page.locator('#efNo').fill('SRC-1112');
+            await page.locator('#efSave').click();
+            await page.waitForSelector('.ux-next',{state:'visible'});
+            assert((await page.locator('.ux-next').innerText()).includes('다음 행동'),'equipment next action');
+            console.log('PASS equipment + next action');
+            await page.locator('[data-next-close]').click();
+
+            await page.locator('[data-page="customer"]:visible').first().click();
+            await page.waitForSelector('#newCustomer');
+            await page.locator('#newCustomer').click();
+            await page.locator('#cfCo').fill('JQA SOURCE 고객');
+            await page.locator('#cfP').fill('검수자');
+            await page.locator('#cfMail').fill('source@example.com');
+            await page.locator('#cfSave').click();
+            await page.waitForSelector('.ux-next',{state:'visible'});
+            console.log('PASS customer + next action');
+            await page.locator('[data-next-close]').click();
+
+            await page.locator('[data-page="sales"]:visible').first().click();
+            await page.waitForSelector('#newDeal');
+            await page.locator('#newDeal').click();
+            await page.locator('#dName').fill('JQA SOURCE 영업');
+            await page.locator('.dealEq').first().check();
+            await page.locator('#dPlanned').fill('10000000');
+            await page.locator('#dSave').click();
+            await page.waitForSelector('.ux-next',{state:'visible'});
+            console.log('PASS sales + next action');
+            await page.locator('[data-next-close]').click();
+
+            const cal=page.getByRole('button',{name:'캘린더'}).first();
+            await cal.click();
+            await page.waitForSelector('#newEvent');
+            await page.locator('#newEvent').click();
+            await page.locator('#evTitle').fill('JQA SOURCE 일정');
+            await page.locator('#evDate').fill('2026-09-28');
+            await page.locator('#evSave').click();
+            await page.waitForSelector('.ux-next',{state:'visible'});
+            console.log('PASS calendar + next action');
+            await page.locator('[data-next-close]').click();
+
+            await page.getByRole('button',{name:'중고 설비'}).first().click();
+            await page.waitForTimeout(100);
+            const acct=page.locator('[data-page="account"]:visible').first();
+            assert(await acct.count(),'account nav');
+            await acct.click();
+            assert((await page.locator('body').innerText()).includes('회계 관리'),'account page');
+            console.log('PASS account page');
+
+            const ops=page.locator('[data-page="ops"]:visible').first();
+            assert(await ops.count(),'ops nav');
+            await ops.click();
+            const txt=await page.locator('body').innerText();
+            for(const s of ['Gmail 발송 큐','고객 Excel/CSV Import','Legacy 이관 Pilot','전체 백업·복구']) assert(txt.includes(s),'ops '+s);
+            console.log('PASS ops integrations UI');
+
+            await page.locator('#quickFind').click();
+            assert(await page.locator('#gSearch').count(),'global search');
+            await page.keyboard.press('Escape');
+            console.log('PASS global search');
+
+            await page.setViewportSize({width:390,height:844});
+            await page.waitForTimeout(150);
+            assert(await page.locator('.mobile-bottom').isVisible(),'mobile nav');
+            console.log('PASS mobile nav');
+
+            if(errors.length)throw new Error(errors.join(' | '));
+            console.log('PASS no console/page errors');
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
