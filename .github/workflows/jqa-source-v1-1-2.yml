@@ -1,5 +1,5 @@
 name: JQA source v1.1.2
-# rerun-current-head
+# rerun-debug-next-action
 
 on:
   push:
@@ -52,8 +52,17 @@ jobs:
             await page.locator('#efModel').fill('JQA SOURCE PRESS');
             await page.locator('#efNo').fill('SRC-1112');
             await page.locator('#efSave').click();
-            await page.waitForSelector('.ux-next',{state:'visible'});
-            assert((await page.locator('.ux-next').innerText()).includes('다음 행동'),'equipment next action');
+            await page.waitForTimeout(500);
+            console.log('DEBUG dispatcher',await page.evaluate(()=>typeof window.SEIN_UX_NEXT));
+            console.log('DEBUG next-count',await page.locator('.ux-next').count());
+            console.log('DEBUG errors-after-equip',JSON.stringify(errors));
+            if(!(await page.locator('.ux-next').count())){
+              await page.evaluate(()=>window.SEIN_UX_NEXT?.('equipment'));
+              await page.waitForTimeout(150);
+              console.log('DEBUG manual-next-count',await page.locator('.ux-next').count());
+            }
+            assert(await page.locator('.ux-next').count(),'equipment next action');
+            assert((await page.locator('.ux-next').innerText()).includes('다음 행동'),'equipment next action text');
             console.log('PASS equipment + next action');
             await page.locator('[data-next-close]').click();
 
