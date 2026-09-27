@@ -45,7 +45,7 @@ async function importLegacy(file){if(!file)return;try{var text=await file.text()
 S.setImportLegacy(importLegacy);
 
 /* backup */
-function backup(){S.saveAll(false);V.save();var p={format:'SEIN_FULL_BACKUP_V1_2',version:'v1.2.0-full',exportedAt:new Date().toISOString(),core:JSON.parse(localStorage.getItem(CORE_KEY)||'{}'),ext:E};V.downloadText('SEIN_FULL_v1.2.0_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(p,null,2),'application/json');S.log('BACKUP_EXPORT','v1.2.0-full')}
+function backup(){S.saveAll(false);V.save();var p={format:'SEIN_FULL_BACKUP_V1_2',version:'v1.2.1-full',exportedAt:new Date().toISOString(),core:JSON.parse(localStorage.getItem(CORE_KEY)||'{}'),ext:E};V.downloadText('SEIN_FULL_v1.2.1_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(p,null,2),'application/json');S.log('BACKUP_EXPORT','v1.2.1-full')}
 async function restore(file){if(!file)return;try{var j=JSON.parse(await file.text());if(j.format==='SEIN_FULL_BACKUP_V1_2'){localStorage.setItem(CORE_KEY,JSON.stringify(j.core||{}));localStorage.setItem(V.key,JSON.stringify(j.ext||V.defaults()))}else if(j.version)localStorage.setItem(CORE_KEY,JSON.stringify(j));else throw new Error('형식 오류');location.reload()}catch(e){S.toast('복구 파일을 확인해 주세요')}}
 setTimeout(function(){try{S.render()}catch(e){console.warn(e)}},0);
 })();
