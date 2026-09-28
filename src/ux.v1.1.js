@@ -4,35 +4,6 @@
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const visible=el=>!!(el && (el.offsetWidth||el.offsetHeight||el.getClientRects().length));
-  const COLLAPSE_KEY='sein.ui.collapsed.v1';
-  const safeHtml=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
-  function collapseState(){
-    try{return JSON.parse(localStorage.getItem(COLLAPSE_KEY)||'{}')}catch(_e){return {}}
-  }
-  function collapsed(id){return !!collapseState()[id]}
-  function saveCollapsed(id,value){
-    const s=collapseState();s[id]=value;localStorage.setItem(COLLAPSE_KEY,JSON.stringify(s));
-  }
-  function setCollapse(section,id,value){
-    section.classList.toggle('is-collapsed',value);
-    const btn=section.querySelector('[data-collapse-toggle]');
-    if(btn){btn.setAttribute('aria-expanded',String(!value));btn.querySelector('.ux-collapse-icon').textContent=value?'▸':'▾'}
-    saveCollapsed(id,value);
-  }
-  function sectionShell(id,title,meta){
-    const sec=document.createElement('section');
-    sec.className='ux-collapse-section';
-    sec.dataset.collapseId=id;
-    sec.innerHTML='<button class="ux-collapse-head" type="button" data-collapse-toggle aria-expanded="true">'+
-      '<span class="ux-collapse-icon">▾</span><span class="ux-collapse-title">'+safeHtml(title)+'</span>'+
-      (meta?'<span class="ux-collapse-meta">'+safeHtml(meta)+'</span>':'')+'</button><div class="ux-collapse-body"></div>';
-    const initial=collapsed(id);if(initial)sec.classList.add('is-collapsed');
-    const b=sec.querySelector('[data-collapse-toggle]');
-    b.setAttribute('aria-expanded',String(!initial));
-    b.querySelector('.ux-collapse-icon').textContent=initial?'▸':'▾';
-    b.onclick=()=>setCollapse(sec,id,!sec.classList.contains('is-collapsed'));
-    return sec;
-  }
 
   function nav(page,afterId){
     const b=$$('[data-page="'+page+'"]').find(visible);
@@ -62,10 +33,9 @@
     else if(id==='search')search();
   }
   function flowCard(){
-    const sec=sectionShell('workflow','작업흐름','찾기 → 열기 → 수정 → 연결 → 저장 → 다음 행동');
-    sec.classList.add('ux-flow');
-    sec.querySelector('.ux-collapse-body').innerHTML=
-      '<div class="ux-flow-head"><div><span class="full-chip">FLOW</span><p>업무가 끊기지 않도록 다음 행동까지 이어집니다.</p></div><button class="btn sm" data-ux="search">⌕ 통합 검색</button></div>'+
+    const sec=document.createElement('section');
+    sec.className='ux-flow';
+    sec.innerHTML='<div class="ux-flow-head"><div><span class="full-chip">UX v1.1</span><h2>작업흐름</h2><p>찾기 → 열기 → 수정 → 연결 → 저장 → 다음 행동</p></div><button class="btn sm" data-ux="search">⌕ 통합 검색</button></div>'+
       '<div class="ux-steps">'+
       '<div><b>1</b><span>찾기</span><small>설비·고객·영업 통합검색</small></div>'+
       '<div><b>2</b><span>열기</span><small>목록에서 상세 진입</small></div>'+
@@ -75,36 +45,6 @@
       '<div><b>6</b><span>다음 행동</span><small>저장 뒤 후속 업무 선택</small></div></div>'+
       '<div class="ux-quick"><button class="btn primary" data-ux="new-equip">＋ 설비 등록</button><button class="btn" data-ux="new-customer">＋ 고객 등록</button><button class="btn" data-ux="new-deal">＋ 영업건 생성</button><button class="btn" data-ux="files">자료실</button></div>';
     return sec;
-  }
-  function todayCard(){
-    let tasks=[];
-    try{
-      const cat=(typeof state!=='undefined'&&state.cat)||'used';
-      if(typeof DEALS!=='undefined'){
-        DEALS.filter(d=>d.status!=='확정'&&d.equips.some(id=>typeof eqById==='function'&&eqById(id)?.cat===cat)).slice(0,2)
-          .forEach(d=>tasks.push({kind:'영업',title:d.name,sub:d.customer,go:'sales'}));
-      }
-      if(typeof PURCHASES!=='undefined'){
-        PURCHASES.filter(p=>p.status==='진행'&&(!p.cat||p.cat===cat)).slice(0,2)
-          .forEach(p=>tasks.push({kind:'매입',title:p.name,sub:p.owner,go:'dashboard'}));
-      }
-    }catch(_e){}
-    const sec=sectionShell('today','오늘 할 일',tasks.length?tasks.length+'건':'0건');
-    sec.classList.add('ux-today');
-    sec.querySelector('.ux-collapse-body').innerHTML=tasks.length?
-      '<div class="ux-today-list">'+tasks.map(t=>'<button class="ux-today-item" data-today-go="'+t.go+'"><span class="badge b-gray">'+safeHtml(t.kind)+'</span><b>'+safeHtml(t.title)+'</b><small>'+safeHtml(t.sub)+'</small><span>›</span></button>').join('')+'</div>':
-      '<div class="ux-today-empty">현재 확인이 필요한 진행 항목이 없습니다.</div>';
-    return sec;
-  }
-  function wrapDashboard(main){
-    if(main.querySelector('.ux-dashboard-section'))return;
-    const nodes=[...main.children].filter(el=>!el.classList.contains('ux-flow')&&!el.classList.contains('ux-today')&&!el.classList.contains('ux-dashboard-section'));
-    if(!nodes.length)return;
-    const sec=sectionShell('dashboard','대시보드','KPI · 영업 · 매입 · 설비 · 환율');
-    sec.classList.add('ux-dashboard-section');
-    const body=sec.querySelector('.ux-collapse-body');
-    nodes.forEach(n=>body.appendChild(n));
-    main.appendChild(sec);
   }
   function ensureMobileBottom(){
     if(!window.matchMedia('(max-width:820px)').matches)return;
@@ -125,17 +65,9 @@
     if(!main)return;
     ensureMobileBottom();
     const title=main.querySelector('.page-title')?.textContent||'';
-    if(title.includes('대시보드')){
-      if(!main.querySelector('.ux-flow'))main.prepend(flowCard());
-      if(!main.querySelector('.ux-today')){
-        const f=main.querySelector('.ux-flow');f?.after(todayCard());
-      }
-      wrapDashboard(main);
-    }
+    if(title.includes('대시보드')&&!main.querySelector('.ux-flow'))main.prepend(flowCard());
   }
   document.addEventListener('click',e=>{
-    const tg=e.target.closest('[data-today-go]');
-    if(tg){runNext(tg.dataset.todayGo);return}
     const ux=e.target.closest('[data-ux]');
     if(ux){
       const a=ux.dataset.ux;
