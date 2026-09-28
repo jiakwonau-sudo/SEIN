@@ -48,7 +48,7 @@ function syncFlowButton(flow,btn){
   const c=flow.classList.contains('is-collapsed');
   btn.textContent=c?'펼치기 ▾':'접기 ▴';btn.setAttribute('aria-expanded',String(!c));btn.setAttribute('aria-label','업무 흐름 '+(c?'펼치기':'접기'));
 }
-function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention();enhanceTables();observeModalValidation();observeModalUX();enhanceStatusA11y();observeSaveStatus();enhanceSearchFeedback()}
+function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention();enhanceTables();observeModalValidation();observeModalUX();enhanceStatusA11y();observeSaveStatus();enhanceSearchFeedback();enhanceContextBar()}
 const mo=new MutationObserver(()=>requestAnimationFrame(enhance));
 const start=()=>{restoreUIPrefs();enhance();const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
@@ -283,6 +283,28 @@ function observeModalUX(){
   const overlay=document.getElementById('overlay');if(!overlay||overlay.dataset.ux14ModalUX)return;
   overlay.dataset.ux14ModalUX='1';
   new MutationObserver(()=>setTimeout(()=>{enhanceModalUX();setupModalValidation()},0)).observe(overlay,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+}
+
+
+/* UX iteration 10/10 — page/context orientation */
+function contextNames(){
+  const cat=(typeof CATS!=='undefined'?CATS:[]).find(c=>c.id===state.cat)?.name||state.cat;
+  let page=state.page;
+  if(state.cat==='calendar')page='캘린더';
+  else{
+    const item=(typeof NAVS!=='undefined'?NAVS:[]).flatMap(g=>g.items||[]).find(x=>x.id===state.page);
+    page=item?.name||state.page;
+  }
+  return {cat,page,user:V?.user?.()?.name||'사용자'};
+}
+function enhanceContextBar(){
+  const main=document.getElementById('main');if(!main)return;
+  main.querySelector('.ux14-contextbar')?.remove();
+  const n=contextNames(),bar=document.createElement('div');bar.className='ux14-contextbar';
+  bar.innerHTML='<div class="ux14-context-path"><span>'+n.cat+'</span><i>›</i><b>'+n.page+'</b></div>'+
+    '<div class="ux14-context-meta"><span>'+n.user+'</span>'+(state.page!=='dash'&&state.cat!=='calendar'?'<button class="btn xs" data-context-home>대시보드</button>':'')+'</div>';
+  main.prepend(bar);
+  bar.querySelector('[data-context-home]')?.addEventListener('click',()=>ux14Go('dash',state.cat));
 }
 
 window.SEIN_UX14={FX,enhance,openMoreSheet,closeMoreSheet,saveUIPrefs};
