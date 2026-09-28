@@ -48,7 +48,7 @@ function syncFlowButton(flow,btn){
   const c=flow.classList.contains('is-collapsed');
   btn.textContent=c?'펼치기 ▾':'접기 ▴';btn.setAttribute('aria-expanded',String(!c));btn.setAttribute('aria-label','업무 흐름 '+(c?'펼치기':'접기'));
 }
-function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints()}
+function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention()}
 const mo=new MutationObserver(()=>requestAnimationFrame(enhance));
 const start=()=>{enhance();const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
@@ -103,6 +103,32 @@ document.addEventListener('keydown',e=>{
     const overlay=document.getElementById('overlay');if(overlay?.classList.contains('open')){S.closeModal();return;}
   }
 },true);
+
+
+/* UX iteration 3/10 — attention / next-work panel */
+function attentionData(){
+  const eqs=typeof EQUIP!=='undefined'?EQUIP:[];
+  const deals=(typeof DEALS!=='undefined'?DEALS:[]).filter(d=>(d.equips||[]).some(id=>eqs.find(e=>e.id===id)?.cat===state.cat)&&d.status!=='확정');
+  const blocked=(typeof CUSTOMERS!=='undefined'?CUSTOMERS:[]).filter(c=>c.flag==='block'||!c.mail);
+  const now=new Date(),limit=new Date(now);limit.setDate(limit.getDate()+7);
+  const events=(typeof calendarEvents!=='undefined'?calendarEvents:[]).filter(e=>{const d=new Date(e.date+'T23:59:59');return d>=new Date(now.toDateString())&&d<=limit}).sort((a,b)=>a.date.localeCompare(b.date));
+  return {deals,blocked,events};
+}
+function enhanceAttention(){
+  const main=document.getElementById('main');if(!main)return;
+  const title=main.querySelector('.page-title')?.textContent||'';
+  if(!title.includes('대시보드'))return;
+  if(main.querySelector('.ux14-attention'))return;
+  const d=attentionData(),sec=document.createElement('section');sec.className='ux14-attention';
+  const tasks=[];
+  if(d.deals.length)tasks.push({n:d.deals.length,label:'진행 영업',sub:'후속 확인이 필요한 영업건',page:'sales',cat:state.cat});
+  if(d.blocked.length)tasks.push({n:d.blocked.length,label:'발송 확인',sub:'송신금지·이메일 미등록 고객',page:'customer',cat:state.cat});
+  if(d.events.length)tasks.push({n:d.events.length,label:'7일 내 일정',sub:d.events[0].date+' · '+d.events[0].title,page:'calendar',cat:'calendar'});
+  sec.innerHTML='<div class="ux14-attention-head"><div><small>FOCUS</small><h3>오늘 할 일</h3></div><span class="muted">'+(tasks.length?'우선 확인할 업무 '+tasks.length+'개':'급한 항목 없음')+'</span></div>'+
+    '<div class="ux14-attention-grid">'+(tasks.length?tasks.map(t=>'<button data-attention-page="'+t.page+'" data-attention-cat="'+t.cat+'"><b>'+t.n+'</b><span>'+t.label+'</span><small>'+t.sub+'</small><i>›</i></button>').join(''):'<div class="ux14-all-clear"><b>정리된 상태입니다</b><span>새 일정이나 영업건이 생기면 여기에 자동으로 표시됩니다.</span></div>')+'</div>';
+  const flow=main.querySelector('.ux-flow');if(flow)flow.after(sec);else main.prepend(sec);
+  sec.querySelectorAll('[data-attention-page]').forEach(b=>b.onclick=()=>ux14Go(b.dataset.attentionPage,b.dataset.attentionCat));
+}
 
 window.SEIN_UX14={FX,enhance,openMoreSheet,closeMoreSheet};
 })();
