@@ -1,4 +1,4 @@
-/* SEIN v1.4.2 — true section collapse */
+/* SEIN v1.4.3 — stable section collapse, observer loop fixed */
 (function(){
 'use strict';
 const S=window.SEIN_INTERNAL,V=window.SEIN_V12;
@@ -8,9 +8,12 @@ const read=k=>localStorage.getItem(PREFIX+k)==='1';
 const write=(k,v)=>localStorage.setItem(PREFIX+k,v?'1':'0');
 
 function syncButton(btn,collapsed,label){
-  btn.textContent=collapsed?'펼치기':'접기';
-  btn.setAttribute('aria-expanded',String(!collapsed));
-  btn.setAttribute('aria-label',label+' '+(collapsed?'펼치기':'접기'));
+  const text=collapsed?'펼치기':'접기';
+  const expanded=String(!collapsed);
+  const aria=label+' '+text;
+  if(btn.textContent!==text) btn.textContent=text;
+  if(btn.getAttribute('aria-expanded')!==expanded) btn.setAttribute('aria-expanded',expanded);
+  if(btn.getAttribute('aria-label')!==aria) btn.setAttribute('aria-label',aria);
 }
 
 function bindCollapse(root,bodySelector,key,label,buttonHost){
@@ -137,7 +140,15 @@ function enhance(){
   enhanceDashboardMaster();
 }
 
-const observer=new MutationObserver(()=>requestAnimationFrame(enhance));
+let enhanceQueued=false;
+const observer=new MutationObserver(()=>{
+  if(enhanceQueued)return;
+  enhanceQueued=true;
+  requestAnimationFrame(()=>{
+    enhanceQueued=false;
+    enhance();
+  });
+});
 function start(){
   enhance();
   const main=document.getElementById('main');
