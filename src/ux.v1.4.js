@@ -48,7 +48,7 @@ function syncFlowButton(flow,btn){
   const c=flow.classList.contains('is-collapsed');
   btn.textContent=c?'펼치기 ▾':'접기 ▴';btn.setAttribute('aria-expanded',String(!c));btn.setAttribute('aria-label','업무 흐름 '+(c?'펼치기':'접기'));
 }
-function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention();enhanceTables();observeModalValidation();enhanceStatusA11y();observeSaveStatus()}
+function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention();enhanceTables();observeModalValidation();enhanceStatusA11y();observeSaveStatus();enhanceSearchFeedback()}
 const mo=new MutationObserver(()=>requestAnimationFrame(enhance));
 const start=()=>{restoreUIPrefs();enhance();const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
@@ -224,6 +224,37 @@ function observeSaveStatus(){
   const save=document.querySelector('.save-indicator');if(!save||save.dataset.ux14Observed)return;
   save.dataset.ux14Observed='1';
   new MutationObserver(()=>{save.title='마지막 상태: '+save.textContent+' · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}).observe(save,{childList:true,characterData:true,subtree:true});
+}
+
+
+/* UX iteration 8/10 — search result feedback and recovery */
+function ensureCount(input,selector){
+  if(!input||input.dataset.ux14Count)return;input.dataset.ux14Count='1';
+  let out=document.createElement('span');out.className='ux14-result-count';input.closest('.field')?.after(out);
+  const paint=()=>setTimeout(()=>{const els=[...document.querySelectorAll(selector)],visible=els.filter(x=>getComputedStyle(x).display!=='none');out.textContent=input.value.trim()?visible.length+'건 표시':'전체 '+els.length+'건'},0);
+  input.addEventListener('input',paint);paint();
+}
+function enhanceSearchFeedback(){
+  ensureCount(document.querySelector('#goodsSearch'),'.eq-grid .eq,table.tbl tbody tr[data-eq]');
+  ensureCount(document.querySelector('#customerSearch'),'#main tbody tr');
+  const g=document.querySelector('#gSearch');
+  if(g&&!g.dataset.ux14Count){
+    g.dataset.ux14Count='1';
+    g.addEventListener('input',()=>setTimeout(()=>{
+      const box=document.querySelector('#gResults');if(!box)return;
+      box.querySelector('.ux14-search-meta')?.remove();
+      const n=box.querySelectorAll('.result').length,meta=document.createElement('div');meta.className='ux14-search-meta';
+      meta.textContent=g.value.trim()?(n?n+'건 찾음':'검색 결과가 없습니다 · 모델명, 회사명, 파일명처럼 핵심어만 입력해 보세요'):'설비 · 영업 · 고객 · 파일 통합검색';
+      box.prepend(meta);
+    },0));
+  }
+  if(state.page==='goods'&&state.goodsFilter&&state.goodsFilter!=='all'){
+    const empty=document.querySelector('#main .empty');
+    if(empty&&!empty.querySelector('[data-reset-stage]')){
+      const b=document.createElement('button');b.className='btn sm';b.dataset.resetStage='1';b.textContent='전체 단계 보기';
+      b.onclick=()=>{state.goodsFilter='all';saveUIPrefs();S.render()};empty.appendChild(b);
+    }
+  }
 }
 
 window.SEIN_UX14={FX,enhance,openMoreSheet,closeMoreSheet,saveUIPrefs};

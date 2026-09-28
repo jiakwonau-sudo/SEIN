@@ -54,3 +54,8 @@
 /* UX iteration 7/10 */
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex="0"]:focus-visible{outline:2px solid #168f86;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* UX iteration 8/10 */
+.ux14-result-count{font-size:10.5px;color:#858c87;font-weight:650;white-space:nowrap}
+.ux14-search-meta{padding:7px 10px;margin-bottom:4px;border-radius:9px;background:#f6f3ee;color:#747b76;font-size:10.5px}
+.empty [data-reset-stage]{margin-top:12px}
