@@ -1,0 +1,130 @@
+/* SEIN v1.4.1 — visible hierarchy, nothing important hidden */
+
+/* Primary information: larger and darker */
+.page-title{font-size:28px;line-height:1.12;font-weight:780}
+.kpi .k-value{font-size:31px;line-height:1.05;font-weight:780}
+.ux14-attention-grid button>b{font-size:30px;line-height:1;font-weight:780}
+.ux14-attention-grid button>span{font-size:13px;font-weight:720;color:#2d342f}
+.card-title,.eq-model{font-size:15px;font-weight:720}
+.btn.primary,.btn.ok{font-weight:720}
+
+/* Secondary information: retained, but visually quiet */
+.page-sub,.modal-sub,.kpi .k-label,.kpi .k-delta,
+.eq-no,.eq-memo,.muted,.f .hint,.v12-field-meta,
+.ux14-contextbar,.ux14-result-count,.ux14-search-meta,
+.v12-run-summary,.audit-row,.fx-market-note small{
+  font-size:10.5px;
+  line-height:1.45;
+  color:#7f8781;
+}
+table.tbl th{font-size:10.5px}
+table.tbl td{font-size:12.5px}
+.badge{font-size:10.5px}
+.side-label{font-size:9.5px}
+
+/* Do not erase the workflow when compacted. Shrink it instead. */
+.ux-flow.is-collapsed{padding:12px 14px}
+.ux-flow.is-collapsed .ux-flow-head{align-items:center}
+.ux-flow.is-collapsed .ux-steps{
+  display:grid!important;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:4px;
+  margin-top:9px;
+}
+.ux-flow.is-collapsed .ux-steps>div{
+  padding:5px 6px;
+  border-color:transparent;
+  background:transparent;
+  border-radius:7px;
+}
+.ux-flow.is-collapsed .ux-steps b{
+  width:17px;height:17px;
+  margin-bottom:3px;
+  font-size:8px;
+}
+.ux-flow.is-collapsed .ux-steps span{
+  font-size:9.5px;
+  font-weight:680;
+}
+.ux-flow.is-collapsed .ux-steps small{
+  display:block!important;
+  font-size:8.5px;
+  line-height:1.25;
+  color:#929893;
+}
+.ux-flow.is-collapsed .ux-quick{
+  display:flex!important;
+  gap:5px;
+  margin-top:7px;
+}
+.ux-flow.is-collapsed .ux-quick .btn{
+  padding:4px 7px;
+  font-size:9.5px;
+  border-radius:8px;
+}
+
+/* Keep supporting text visible instead of clipping it away. */
+.ux14-attention-grid button>small{
+  font-size:9.5px;
+  line-height:1.35;
+  color:#858d87;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+}
+.ux14-context-path span,.ux14-context-path b{
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+}
+.ux14-context-meta{
+  flex-wrap:wrap;
+  font-size:9.5px;
+}
+.eq-memo{
+  -webkit-line-clamp:3;
+  font-size:10.5px;
+  line-height:1.4;
+}
+
+/* Current / active information gets stronger separation. */
+.nav.on,.tab.on,.chip.on,.cat.on{font-weight:740}
+.kpi{position:relative}
+.kpi .k-delta{margin-top:7px}
+.ux14-attention{border-color:#dcd6ce}
+.ux14-attention-head h3{font-size:17px}
+
+/* Mobile: preserve secondary info rather than deleting it. */
+@media(max-width:820px){
+  .topbar-right .save-indicator{
+    display:inline-flex!important;
+    max-width:72px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:8.5px;
+  }
+  .page-title{font-size:24px}
+  .kpi .k-value{font-size:25px}
+  .ux14-attention-grid button>b{font-size:26px}
+  .ux-flow.is-collapsed .ux-steps{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  .logo small{
+    display:block!important;
+    max-width:100px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:8px;
+    line-height:1.1;
+  }
+  .ux14-context-meta>span{
+    display:inline-flex!important;
+    padding:2px 5px;
+    font-size:8.5px;
+  }
+  .page-sub{font-size:9.5px}
+  .kpi .k-label,.kpi .k-delta{font-size:9px}
+  .ux-flow.is-collapsed .ux-quick{flex-wrap:wrap}
+}
