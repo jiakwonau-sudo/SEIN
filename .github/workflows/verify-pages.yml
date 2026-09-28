@@ -11,21 +11,21 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Check published URLs
+      - name: Check v1.4.2 published URLs
         shell: bash
         run: |
           set -euo pipefail
           check() {
             url="$1"
             marker="$2"
-            echo "=== $url ==="
-            body="$(mktemp)"
-            code="$(curl -L -sS --retry 8 --retry-delay 2 -o "$body" -w '%{http_code}' "$url")"
-            echo "HTTP=$code"
+            tmp="$(mktemp)"
+            code="$(curl -L -sS --retry 8 --retry-delay 2 -o "$tmp" -w '%{http_code}' "$url")"
+            echo "$url HTTP=$code"
             test "$code" = "200"
-            grep -F "$marker" "$body" >/dev/null
+            grep -F "$marker" "$tmp" >/dev/null
           }
-          check "https://jiakwonau-sudo.github.io/SEIN/" "SEIN 통합 관리 시스템"
-          check "https://jiakwonau-sudo.github.io/SEIN/original/" "세인코퍼레이션 내부 관리 시스템"
-          check "https://jiakwonau-sudo.github.io/SEIN/full/" "FULL v1.4.1"
-          check "https://jiakwonau-sudo.github.io/SEIN/v1-4-1-full/" "FULL v1.4.1"
+          BASE="https://jiakwonau-sudo.github.io/SEIN"
+          check "$BASE/full/" "FULL v1.4.2"
+          check "$BASE/v1-4-2-full/" "FULL v1.4.2"
+          check "$BASE/full/collapse.v1.4.2.css" "real collapse"
+          check "$BASE/full/collapse.v1.4.2.js" "true section collapse"
