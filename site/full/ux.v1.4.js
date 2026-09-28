@@ -48,7 +48,7 @@ function syncFlowButton(flow,btn){
   const c=flow.classList.contains('is-collapsed');
   btn.textContent=c?'펼치기 ▾':'접기 ▴';btn.setAttribute('aria-expanded',String(!c));btn.setAttribute('aria-label','업무 흐름 '+(c?'펼치기':'접기'));
 }
-function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention();enhanceTables();observeModalValidation()}
+function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention();enhanceTables();observeModalValidation();enhanceStatusA11y();observeSaveStatus()}
 const mo=new MutationObserver(()=>requestAnimationFrame(enhance));
 const start=()=>{restoreUIPrefs();enhance();const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
@@ -210,6 +210,20 @@ function setupModalValidation(){
 function observeModalValidation(){
   const overlay=document.getElementById('overlay');if(!overlay||overlay.dataset.ux14Validation)return;
   overlay.dataset.ux14Validation='1';new MutationObserver(()=>setTimeout(setupModalValidation,0)).observe(overlay,{childList:true,subtree:true});
+}
+
+
+/* UX iteration 7/10 — accessible status feedback */
+function enhanceStatusA11y(){
+  const toast=document.getElementById('toast');if(toast){toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');toast.setAttribute('aria-atomic','true')}
+  const save=document.querySelector('.save-indicator');if(save){save.setAttribute('role','status');save.setAttribute('aria-live','polite');save.title='마지막 상태: '+save.textContent}
+  const next=document.querySelector('.ux-next');if(next){next.setAttribute('role','status');next.setAttribute('aria-live','polite');next.setAttribute('aria-atomic','true')}
+  document.querySelectorAll('button:not([type])').forEach(b=>b.type='button');
+}
+function observeSaveStatus(){
+  const save=document.querySelector('.save-indicator');if(!save||save.dataset.ux14Observed)return;
+  save.dataset.ux14Observed='1';
+  new MutationObserver(()=>{save.title='마지막 상태: '+save.textContent+' · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}).observe(save,{childList:true,characterData:true,subtree:true});
 }
 
 window.SEIN_UX14={FX,enhance,openMoreSheet,closeMoreSheet,saveUIPrefs};

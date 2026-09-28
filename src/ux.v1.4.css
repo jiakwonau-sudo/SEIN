@@ -50,3 +50,7 @@
 .ux14-form-hint{margin-right:auto;font-size:10.5px;color:#a45c56;font-weight:600;align-self:center}
 .ux14-form-hint.ok{color:#4c856e}
 .modal-foot .btn:disabled{opacity:.42;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+/* UX iteration 7/10 */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex="0"]:focus-visible{outline:2px solid #168f86;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
