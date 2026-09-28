@@ -48,7 +48,7 @@ function syncFlowButton(flow,btn){
   const c=flow.classList.contains('is-collapsed');
   btn.textContent=c?'펼치기 ▾':'접기 ▴';btn.setAttribute('aria-expanded',String(!c));btn.setAttribute('aria-label','업무 흐름 '+(c?'펼치기':'접기'));
 }
-function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention()}
+function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention();enhanceTables()}
 const mo=new MutationObserver(()=>requestAnimationFrame(enhance));
 const start=()=>{restoreUIPrefs();enhance();const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
@@ -154,6 +154,20 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-view],[data-stage],[data-av],[data-year],#calPrev,#calNext'))setTimeout(saveUIPrefs,0);
 },true);
 window.addEventListener('beforeunload',saveUIPrefs);
+
+
+/* UX iteration 5/10 — table overflow affordance */
+function enhanceTables(){
+  document.querySelectorAll('.tbl-wrap').forEach(w=>{
+    w.setAttribute('tabindex','0');w.setAttribute('role','region');w.setAttribute('aria-label','데이터 표 · 가로 스크롤 가능');
+    const overflow=w.scrollWidth>w.clientWidth+4;
+    w.classList.toggle('is-scrollable',overflow);
+    const prev=w.previousElementSibling;
+    if(overflow&&(!prev||!prev.classList.contains('ux14-scroll-hint'))){
+      const h=document.createElement('div');h.className='ux14-scroll-hint';h.innerHTML='<span>↔</span> 좌우로 밀어 더 보기';w.before(h);
+    }else if(!overflow&&prev&&prev.classList.contains('ux14-scroll-hint'))prev.remove();
+  });
+}
 
 window.SEIN_UX14={FX,enhance,openMoreSheet,closeMoreSheet,saveUIPrefs};
 })();
