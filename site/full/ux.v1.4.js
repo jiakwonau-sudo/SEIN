@@ -50,7 +50,7 @@ function syncFlowButton(flow,btn){
 }
 function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention()}
 const mo=new MutationObserver(()=>requestAnimationFrame(enhance));
-const start=()=>{enhance();const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true})};
+const start=()=>{restoreUIPrefs();enhance();const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 
 /* UX iteration 1/10 — mobile More navigation */
@@ -130,5 +130,30 @@ function enhanceAttention(){
   sec.querySelectorAll('[data-attention-page]').forEach(b=>b.onclick=()=>ux14Go(b.dataset.attentionPage,b.dataset.attentionCat));
 }
 
-window.SEIN_UX14={FX,enhance,openMoreSheet,closeMoreSheet};
+
+/* UX iteration 4/10 — remember working context */
+const PREF_KEY='sein.ux.prefs.v1.4';
+let prefsApplied=false;
+function saveUIPrefs(){
+  try{
+    localStorage.setItem(PREF_KEY,JSON.stringify({
+      goodsView:state.goodsView,goodsFilter:state.goodsFilter,photoStage:state.photoStage,
+      accountView:state.accountView,sheetYear:state.sheetYear,calYear:state.calYear,calMonth:state.calMonth
+    }));
+  }catch(_e){}
+}
+function restoreUIPrefs(){
+  if(prefsApplied)return;prefsApplied=true;
+  try{
+    const p=JSON.parse(localStorage.getItem(PREF_KEY)||'{}');
+    ['goodsView','goodsFilter','photoStage','accountView','sheetYear','calYear','calMonth'].forEach(k=>{if(p[k]!==undefined&&p[k]!==null)state[k]=p[k]});
+    S.render();
+  }catch(_e){}
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest('[data-view],[data-stage],[data-av],[data-year],#calPrev,#calNext'))setTimeout(saveUIPrefs,0);
+},true);
+window.addEventListener('beforeunload',saveUIPrefs);
+
+window.SEIN_UX14={FX,enhance,openMoreSheet,closeMoreSheet,saveUIPrefs};
 })();
