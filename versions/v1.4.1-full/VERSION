@@ -1,0 +1,7 @@
+v1.4.1-full
+baseline=mockup-v0.2-after-kickoff
+current_site=site/full
+immutable_site=site/v1-4-1-full
+previous_immutable=site/v1-4-0-full
+change=visible hierarchy: important information large, secondary information small but retained
+external_integrations=MOCK except verified market FX snapshot display
