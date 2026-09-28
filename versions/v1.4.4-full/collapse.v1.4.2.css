@@ -1,0 +1,106 @@
+/* SEIN v1.4.2 — real collapse, header trace only */
+.ux142-collapse-btn{
+  min-width:54px;
+  justify-content:center;
+  padding:4px 8px;
+  font-size:10.5px;
+}
+.ux142-hidden{display:none!important}
+.ux142-head-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+
+/* workflow: only its header survives */
+.ux-flow.ux142-collapsed{
+  padding:9px 12px!important;
+  min-height:0!important;
+}
+.ux-flow.ux142-collapsed > :not(.ux-flow-head){display:none!important}
+.ux-flow.ux142-collapsed .ux-steps,
+.ux-flow.ux142-collapsed .ux-quick{display:none!important}
+.ux-flow.ux142-collapsed .ux-flow-head{margin:0!important;align-items:center!important}
+.ux-flow.ux142-collapsed .ux-flow-head p{display:none!important}
+.ux-flow.ux142-collapsed .ux-flow-head h2{margin:0!important;font-size:13px!important}
+.ux-flow.ux142-collapsed .ux-flow-head small{font-size:8px!important}
+
+/* today: title row only */
+.ux14-attention.ux142-collapsed{
+  padding:9px 12px!important;
+  margin-bottom:10px!important;
+}
+.ux14-attention.ux142-collapsed .ux14-attention-grid{display:none!important}
+.ux14-attention.ux142-collapsed .ux14-attention-head{
+  margin:0!important;
+  align-items:center!important;
+}
+.ux14-attention.ux142-collapsed .ux14-attention-head small{display:none!important}
+.ux14-attention.ux142-collapsed .ux14-attention-head h3{font-size:13px!important;margin:0!important}
+.ux14-attention.ux142-collapsed .ux14-attention-head .muted{display:none!important}
+
+/* KPI section */
+.ux142-section{
+  margin:0 0 14px;
+  border:1px solid #ded8cf;
+  border-radius:17px;
+  background:rgba(255,253,250,.96);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.ux142-section-head{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 14px;
+}
+.ux142-section-head small{
+  display:block;
+  font-size:8.5px;
+  letter-spacing:.9px;
+  font-weight:800;
+  color:#168f86;
+}
+.ux142-section-head h3{margin:1px 0 0;font-size:14px}
+.ux142-section-body{padding:0 14px 14px}
+.ux142-section.ux142-collapsed .ux142-section-body{display:none!important}
+.ux142-section.ux142-collapsed .ux142-section-head{min-height:38px;padding:7px 11px}
+.ux142-section.ux142-collapsed .ux142-section-head small{display:none}
+.ux142-section.ux142-collapsed .ux142-section-head h3{font-size:12.5px;margin:0}
+.ux142-kpi-section .kpis{margin-bottom:0!important}
+
+/* cards: entire body disappears, only card-head remains */
+.card.ux142-collapsed > :not(.card-head){display:none!important}
+.card.ux142-collapsed .card-head{
+  min-height:38px;
+  padding:7px 11px!important;
+  border-bottom:none!important;
+}
+.card.ux142-collapsed .card-title{font-size:12.5px!important}
+.card.ux142-collapsed{box-shadow:none}
+
+/* entire dashboard: page header is the trace */
+#main.ux142-dashboard-collapsed > :not(.ux14-contextbar):not(.page-head){
+  display:none!important;
+}
+#main.ux142-dashboard-collapsed .page-head{
+  min-height:42px;
+  margin-bottom:10px!important;
+  align-items:center!important;
+  padding:7px 10px;
+  border:1px solid #ded8cf;
+  border-radius:14px;
+  background:rgba(255,253,250,.96);
+}
+#main.ux142-dashboard-collapsed .page-head .page-title{font-size:14px!important}
+#main.ux142-dashboard-collapsed .page-head .page-sub{display:none!important}
+#main.ux142-dashboard-collapsed .page-head .actions > :not([data-v142-dashboard]){
+  display:none!important;
+}
+
+/* override v1.4.1 rule which force-displayed collapsed flow */
+.ux-flow.ux142-collapsed .ux-steps,
+.ux-flow.ux142-collapsed .ux-quick{display:none!important}
+
+@media(max-width:820px){
+  .ux142-collapse-btn{min-width:50px;font-size:10px}
+  .ux142-section-head{padding:9px 11px}
+}

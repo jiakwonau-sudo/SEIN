@@ -1,0 +1,98 @@
+/* SEIN v1.4.4 — full section collapse, header trace only */
+.ux144-hidden{display:none!important}
+.ux144-head-actions{display:flex;align-items:center;gap:7px;margin-left:auto}
+.ux144-collapse-btn{
+  min-width:62px;padding:4px 8px!important;justify-content:center;
+  font-size:10.5px!important;white-space:nowrap;
+}
+
+/* 작업흐름: 접으면 제목 한 줄만 */
+.ux-flow.ux144-collapsed{
+  padding:0!important;margin-bottom:7px!important;min-height:0!important;
+  box-shadow:none!important;background:rgba(255,253,250,.78)!important;
+}
+.ux-flow.ux144-collapsed > :not(.ux-flow-head){display:none!important}
+.ux-flow.ux144-collapsed .ux-flow-head{
+  min-height:40px!important;margin:0!important;padding:7px 11px!important;
+  align-items:center!important;
+}
+.ux-flow.ux144-collapsed .ux-flow-head .full-chip,
+.ux-flow.ux144-collapsed .ux-flow-head p,
+.ux-flow.ux144-collapsed .ux-flow-head [data-ux="search"]{display:none!important}
+.ux-flow.ux144-collapsed .ux-flow-head h2{
+  display:block!important;margin:0!important;font-size:13px!important;line-height:1.2!important;
+}
+.ux-flow.ux144-collapsed .ux-steps,
+.ux-flow.ux144-collapsed .ux-quick{display:none!important}
+
+/* 오늘 할 일: 접으면 제목 한 줄만 */
+.ux14-attention.ux144-collapsed{
+  padding:0!important;margin-bottom:7px!important;box-shadow:none!important;
+  background:rgba(255,253,250,.78)!important;
+}
+.ux14-attention.ux144-collapsed .ux14-attention-grid{display:none!important}
+.ux14-attention.ux144-collapsed .ux14-attention-head{
+  min-height:40px!important;margin:0!important;padding:7px 11px!important;align-items:center!important;
+}
+.ux14-attention.ux144-collapsed .ux14-attention-head small,
+.ux14-attention.ux144-collapsed .ux14-attention-head .muted{display:none!important}
+.ux14-attention.ux144-collapsed .ux14-attention-head h3{margin:0!important;font-size:13px!important}
+
+/* 대시보드 상위 섹션 */
+.ux144-dashboard-section{
+  margin:0 0 14px;border:1px solid #ded8cf;border-radius:17px;
+  background:rgba(255,253,250,.96);box-shadow:var(--shadow);overflow:hidden;
+}
+.ux144-dashboard-head{
+  min-height:48px;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:10px 14px;
+}
+.ux144-dashboard-head small,.ux144-subsection-head small{
+  display:block;font-size:8.5px;letter-spacing:.9px;font-weight:800;color:#168f86;
+}
+.ux144-dashboard-head h3,.ux144-subsection-head h3{margin:1px 0 0;font-size:14px}
+.ux144-dashboard-body{padding:0 14px 14px}
+.ux144-dashboard-body>.page-head .page-title{display:none}
+.ux144-dashboard-body>.page-head{margin:0 0 14px}
+.ux144-dashboard-section.ux144-collapsed{
+  margin-bottom:7px;box-shadow:none;background:rgba(255,253,250,.78);
+}
+.ux144-dashboard-section.ux144-collapsed .ux144-dashboard-body{display:none!important}
+.ux144-dashboard-section.ux144-collapsed .ux144-dashboard-head{
+  min-height:40px;padding:7px 11px;
+}
+.ux144-dashboard-section.ux144-collapsed .ux144-dashboard-head small{display:none}
+.ux144-dashboard-section.ux144-collapsed .ux144-dashboard-head h3{font-size:13px;margin:0}
+
+/* 대시보드 내부 하위 섹션도 같은 방식 */
+.ux144-subsection{
+  margin:0 0 14px;border:1px solid #ded8cf;border-radius:16px;
+  background:rgba(255,253,250,.96);box-shadow:var(--shadow);overflow:hidden;
+}
+.ux144-subsection-head{
+  min-height:46px;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:9px 13px;
+}
+.ux144-subsection-body{padding:0 13px 13px}
+.ux144-subsection.ux144-collapsed .ux144-subsection-body{display:none!important}
+.ux144-subsection.ux144-collapsed{box-shadow:none}
+.ux144-subsection.ux144-collapsed .ux144-subsection-head{min-height:38px;padding:6px 10px}
+.ux144-subsection.ux144-collapsed .ux144-subsection-head small{display:none}
+.ux144-subsection.ux144-collapsed .ux144-subsection-head h3{font-size:12.5px;margin:0}
+.ux144-kpi-section .kpis{margin-bottom:0!important}
+
+/* 카드 본문도 완전히 사라짐 */
+.card.ux144-collapsed > :not(.card-head){display:none!important}
+.card.ux144-collapsed{
+  box-shadow:none!important;margin-bottom:0!important;
+}
+.card.ux144-collapsed .card-head{
+  min-height:38px;padding:7px 11px!important;border-bottom:none!important;
+}
+.card.ux144-collapsed .card-title{font-size:12.5px!important}
+
+@media(max-width:820px){
+  .ux144-collapse-btn{min-width:58px;font-size:10px!important}
+  .ux144-dashboard-head,.ux144-subsection-head{padding-left:11px;padding-right:11px}
+  .ux144-dashboard-body{padding:0 10px 10px}
+}

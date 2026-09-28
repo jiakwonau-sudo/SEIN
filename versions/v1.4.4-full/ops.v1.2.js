@@ -1,0 +1,90 @@
+/* SEIN v1.2.0 operations, import, migration and MOCK adapters */
+(function(){
+'use strict';
+var V=window.SEIN_V12,S=window.SEIN_INTERNAL;if(!V||!S)return;var E=V.ext,pendingImport=null,pendingLegacy=null,CORE_KEY='sein.full.v1.data';
+function mail(){return S.getMailQueue()}
+function apps(){return S.getAppFiles()}
+function setApps(v){S.setAppFiles(v)}
+function badge(o){return o.connected?'<span class="badge b-green">MOCK 연결됨</span>':'<span class="badge b-gray">미연결</span>'}
+function qbadge(q){var c=q.status==='Sent'?'b-green':q.status==='Partial Failure'?'b-red':q.status==='Retry'?'b-amber':'b-gray';return '<span class="badge '+c+'">'+V.esc(q.status||'Queued')+'</span>'}
+function page(){
+ if(!V.isAdmin())return '<div class="card"><div class="denied"><div class="lk">🔒</div><h3>대표자 전용 운영 도구입니다</h3></div></div>';
+ var im=E.importRuns[0],lg=E.legacyRuns[0],ex=S.getExchange(),mq=mail();
+ return '<div class="page-head"><div><h1 class="page-title">운영 도구</h1><div class="page-sub">외부 시스템은 MOCK Adapter · 내부 검증/리포트는 실제 동작</div></div><span class="full-chip">FULL v1.4.2</span></div>'+
+ '<div class="ops-grid">'+
+ '<section class="ops-card v12-connector"><div class="v12-card-top"><h3>Gmail Mock Adapter</h3>'+badge(E.integration.gmail)+'</div><p>OAuth 없이 연결, 배치 발송, 실패, 재시도 흐름을 시연합니다.</p><div class="form-actions"><button class="btn sm" id="gmailMockConnect">'+(E.integration.gmail.connected?'연결 해제':'Mock 연결')+'</button><button class="btn primary sm" id="mailRun">대기 큐 실행</button><button class="btn sm" id="mailRetry">실패 재시도</button></div><div class="v12-mini-list">'+(mq.length?mq.slice(0,5).map(function(q){return '<div><b>'+V.esc(q.subject||q.id)+'</b>'+qbadge(q)+'<span>'+((q.batches&&q.batches.length)||1)+' batch · '+(q.sent||0)+'/'+(q.total||0)+(q.failed?' · 실패 '+q.failed:'')+'</span></div>'}).join(''):'<span class="muted">메일 큐 없음</span>')+'</div></section>'+
+ '<section class="ops-card v12-connector"><div class="v12-card-top"><h3>Hana FX Mock Adapter</h3>'+badge(E.integration.fx)+'</div><p>실제 하나은행 호출 없이 동기화/장애 fallback 상태를 시연합니다.</p><div class="metric-row"><div class="metric-mini"><b>'+V.money(ex.usdkrw)+'</b>USD/KRW</div><div class="metric-mini"><b>'+ex.jpykrw+'</b>JPY/KRW</div></div><div class="form-actions"><button class="btn sm" id="fxMockConnect">'+(E.integration.fx.connected?'연결 해제':'Mock 연결')+'</button><button class="btn primary sm" id="fxMockSync">Mock 동기화</button><button class="btn sm" id="fxFallback">장애 Fallback</button></div></section>'+
+ '<section class="ops-card v12-connector"><div class="v12-card-top"><h3>Supabase Mock Adapter</h3>'+badge(E.integration.db)+'</div><p>운영 DB 연결 전 인증/동기화 상태만 시연합니다.</p><div class="form-actions"><button class="btn sm" id="dbMockConnect">'+(E.integration.db.connected?'연결 해제':'Mock 연결')+'</button><button class="btn sm" id="dbMockSync">Mock Sync</button></div><div class="muted" style="font-size:11px;margin-top:8px">'+(E.integration.db.lastSync?'마지막 Mock Sync '+V.esc(E.integration.db.lastSync):'아직 동기화 안 됨')+'</div></section>'+
+ '<section class="ops-card"><h3>고객 Excel / CSV Import</h3><p>컬럼 매핑 → 검증 → 중복 제거 → 오류 리포트 → 정상 행 적용.</p><input id="custImport" type="file" accept=".xlsx,.xls,.csv" style="width:100%">'+(im?'<div class="v12-run-summary"><b>'+V.esc(im.file)+'</b><span>등록 '+im.added+' · 오류 '+im.errors+'</span></div>':'')+'</section>'+
+ '<section class="ops-card"><h3>Legacy Migration Pilot</h3><p>Manifest를 신규 자료실 구조에 매핑하고 성공/중복/오류를 분리합니다.</p><input id="legacyImport" type="file" accept=".csv,.json,.txt" style="width:100%">'+(lg?'<div class="v12-run-summary"><b>'+V.esc(lg.file)+'</b><span>이관 '+lg.migrated+' · 중복 '+lg.duplicates+' · 오류 '+lg.errors+'</span></div>':'')+'</section>'+
+ '<section class="ops-card"><h3>백업 / 복구</h3><p>Core 데이터와 v1.2 확장 데이터를 하나의 JSON에 담습니다.</p><div class="form-actions" style="justify-content:flex-start"><button class="btn sm" id="backupExport">백업 내보내기</button><label class="btn sm">백업 불러오기<input id="backupImport" type="file" accept=".json" hidden></label></div></section>'+
+ '<section class="ops-card"><h3>감사 로그</h3><div class="audit-list">'+(S.getAudit().length?S.getAudit().slice(0,40).map(function(a){return '<div class="audit-row"><span class="when">'+new Date(a.at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span><b>'+V.esc(a.action)+'</b><span>'+V.esc(a.detail||'')+'</span></div>'}).join(''):'<div class="muted">기록 없음</div>')+'</div></section>'+
+ '</div>'
+}
+function toggle(k){var o=E.integration[k];o.connected=!o.connected;o.lastSync=o.connected?new Date().toLocaleString('ko-KR'):null;V.save();S.log('MOCK_CONNECT',k+':'+(o.connected?'ON':'OFF'));S.render()}
+function runMail(){if(!E.integration.gmail.connected)return S.toast('먼저 Gmail Mock Adapter를 연결해 주세요');var q=mail().find(function(x){return ['Queued','Retry','Partial Failure'].includes(x.status)});if(!q)return S.toast('대기/재시도 큐가 없습니다');var batches=q.batches||[[]],fail=q.status==='Retry'?0:Math.max(0,Math.floor((q.total||0)/8));q.batchResults=batches.map(function(batch,i){var f=(fail&&i===batches.length-1)?fail:0;return {batch:i+1,total:batch.length,failed:f,sent:Math.max(0,batch.length-f),status:f?'Partial Failure':'Sent'}});q.failed=fail;q.sent=(q.total||0)-fail;q.status=fail?'Partial Failure':'Sent';q.lastRun=new Date().toISOString();S.saveAll(false);S.log('MAIL_MOCK_RUN',q.id+' / sent '+q.sent+' / failed '+fail);S.render()}
+function retryMail(){var q=mail().find(function(x){return x.status==='Partial Failure'||x.status==='Retry'});if(!q)return S.toast('재시도할 실패 큐가 없습니다');q.sent=q.total;q.failed=0;q.status='Sent';q.batchResults=(q.batches||[[]]).map(function(batch,i){return {batch:i+1,total:batch.length,failed:0,sent:batch.length,status:'Sent'}});q.lastRun=new Date().toISOString();S.saveAll(false);S.log('MAIL_MOCK_RETRY',q.id);S.render()}
+function syncFx(fallback){if(!E.integration.fx.connected&&!fallback)return S.toast('먼저 Hana FX Mock Adapter를 연결해 주세요');var ex=fallback?{usdkrw:1380,jpykrw:9.25,source:'수동 Fallback (MOCK 장애)',updatedAt:new Date().toISOString().slice(0,10)}:{usdkrw:1378,jpykrw:9.21,source:'Hana FX Mock Adapter',updatedAt:new Date().toISOString().slice(0,10)};S.setExchange(ex);E.integration.fx.lastSync=new Date().toLocaleString('ko-KR');V.save();S.saveAll(false);S.log(fallback?'FX_FALLBACK':'FX_MOCK_SYNC','USD '+ex.usdkrw);S.render()}
+function bind(){
+ var b=document.querySelector('#gmailMockConnect');if(b)b.onclick=function(){toggle('gmail')};b=document.querySelector('#mailRun');if(b)b.onclick=runMail;b=document.querySelector('#mailRetry');if(b)b.onclick=retryMail;b=document.querySelector('#fxMockConnect');if(b)b.onclick=function(){toggle('fx')};b=document.querySelector('#fxMockSync');if(b)b.onclick=function(){syncFx(false)};b=document.querySelector('#fxFallback');if(b)b.onclick=function(){syncFx(true)};b=document.querySelector('#dbMockConnect');if(b)b.onclick=function(){toggle('db')};b=document.querySelector('#dbMockSync');if(b)b.onclick=function(){if(!E.integration.db.connected)return S.toast('먼저 Supabase Mock Adapter를 연결해 주세요');E.integration.db.lastSync=new Date().toLocaleString('ko-KR');V.save();S.log('DB_MOCK_SYNC','OK');S.render()};b=document.querySelector('#custImport');if(b)b.onchange=function(e){importCustomers(e.target.files[0])};b=document.querySelector('#legacyImport');if(b)b.onchange=function(e){importLegacy(e.target.files[0])};b=document.querySelector('#backupExport');if(b)b.onclick=backup;b=document.querySelector('#backupImport');if(b)b.onchange=function(e){restore(e.target.files[0])}}
+S.setPageOps(page);S.setBindOps(bind);
+
+/* import */
+function guess(cols){function g(a){return cols.find(function(c){return a.some(function(n){return c.toLowerCase().includes(n)})})||''}return {company:g(['회사','company','업체','고객사']),person:g(['담당','name','성명']),department:g(['부서','dept']),title:g(['직함','title','직급']),tel:g(['전화','tel','phone','mobile']),mail:g(['메일','email']),country:g(['국가','country'])}}
+function customerKey(d){
+  var mail=String(d.mail||'').trim().toLowerCase();
+  if(mail)return 'mail:'+mail;
+  return 'person:'+String(d.co||'').trim().toLowerCase()+'|'+String(d.p||'').trim().toLowerCase()+'|'+String(d.tel||'').replace(/\D/g,'');
+}
+function validate(rows,map){
+  var existing=new Set(CUSTOMERS.map(customerKey)),valid=[],errors=[];
+  var mappingIssues=[];if(!map.company)mappingIssues.push('회사명 컬럼 미매핑');if(!map.person)mappingIssues.push('담당자 컬럼 미매핑');
+  rows.forEach(function(r,i){
+    var d={co:String(r[map.company]||'').trim(),p:String(r[map.person]||'').trim(),d:String(r[map.department]||'').trim(),t:String(r[map.title]||'').trim(),tel:String(r[map.tel]||'').trim(),mail:String(r[map.mail]||'').trim(),country:String(r[map.country]||'').trim()},issues=mappingIssues.slice();
+    if(!d.co)issues.push('회사명 없음');if(!d.p)issues.push('담당자 없음');if(d.mail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.mail))issues.push('이메일 형식');
+    var key=customerKey(d);if(existing.has(key))issues.push('고객 중복');
+    if(issues.length)errors.push({row:i+2,issues:Array.from(new Set(issues)).join(', '),data:d});else{valid.push(d);existing.add(key)}
+  });
+  return {valid:valid,errors:errors};
+}
+function sel(field,label,p){return '<div class="f"><label>'+label+'</label><select data-map="'+field+'"><option value="">사용 안 함</option>'+p.cols.map(function(c){return '<option value="'+V.esc(c)+'" '+(p.map[field]===c?'selected':'')+'>'+V.esc(c)+'</option>'}).join('')+'</select></div>'}
+function importPreview(){var p=pendingImport,r=validate(p.rows,p.map);p.result=r;S.openModal('<div class="modal-head"><div><h3 class="modal-title">고객 Import 검증</h3><div class="modal-sub">'+V.esc(p.file)+' · '+p.rows.length+'행</div></div><button class="x" onclick="closeModal()">✕</button></div><div class="modal-body"><div class="v12-summary-grid"><div><b>'+r.valid.length+'</b><span>등록 가능</span></div><div><b>'+r.errors.length+'</b><span>오류/중복</span></div><div><b>'+p.cols.length+'</b><span>원본 컬럼</span></div></div><h4 class="v12-subtitle">컬럼 매핑</h4><div class="form-grid">'+sel('company','회사명 *',p)+sel('person','담당자 *',p)+sel('department','부서',p)+sel('title','직함',p)+sel('tel','전화',p)+sel('mail','이메일',p)+sel('country','국가',p)+'</div><div class="form-actions"><button class="btn sm" id="importRevalidate">매핑 재검증</button></div><h4 class="v12-subtitle">오류 리포트</h4><div class="v12-error-list">'+(r.errors.length?r.errors.slice(0,20).map(function(x){return '<div><b>'+x.row+'행</b><span>'+V.esc(x.issues)+'</span><small>'+V.esc(x.data.co)+' '+V.esc(x.data.p)+' '+V.esc(x.data.mail)+'</small></div>'}).join(''):'<div class="v12-empty-ok">오류 없음</div>')+'</div></div><div class="modal-foot"><button class="btn" id="importErrorDownload">오류 CSV</button><button class="btn" onclick="closeModal()">취소</button><button class="btn primary" id="importApply">정상 '+r.valid.length+'건 등록</button></div>','wide');document.querySelector('#importRevalidate').onclick=function(){document.querySelectorAll('[data-map]').forEach(function(x){p.map[x.dataset.map]=x.value});importPreview()};document.querySelector('#importErrorDownload').onclick=function(){var csv=['row,issues,company,person,email'].concat(r.errors.map(function(x){return [x.row,'"'+x.issues.replace(/"/g,'""')+'"','"'+x.data.co.replace(/"/g,'""')+'"','"'+x.data.p.replace(/"/g,'""')+'"','"'+x.data.mail.replace(/"/g,'""')+'"'].join(',')})).join('\n');V.downloadText('SEIN_import_errors_'+new Date().toISOString().slice(0,10)+'.csv',csv)};document.querySelector('#importApply').onclick=function(){r.valid.forEach(function(d){CUSTOMERS.push({id:S.uid('CU'),co:d.co,p:d.p,d:d.d,t:d.t,tel:d.tel,mail:d.mail,country:d.country,flag:'',memo:''})});E.importRuns.unshift({id:S.uid('IMP'),file:p.file,added:r.valid.length,errors:r.errors.length,at:new Date().toISOString(),by:V.user().name});V.save();S.saveAll(false);S.log('CUSTOMER_IMPORT',p.file+' / 정상 '+r.valid.length+' / 오류 '+r.errors.length);pendingImport=null;S.closeModal();S.render();S.toast(r.valid.length+'건 등록 완료')}}
+async function importCustomers(file){if(!file)return;try{var rows=[];if(file.name.toLowerCase().endsWith('.csv'))rows=S.parseCSV(await file.text());else{if(!window.XLSX)throw new Error('Excel 파서 로드 실패');var wb=XLSX.read(await file.arrayBuffer(),{type:'array'});rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''})}if(!rows.length)throw new Error('데이터 행이 없습니다');var cols=Object.keys(rows[0]);pendingImport={file:file.name,rows:rows,cols:cols,map:guess(cols)};importPreview()}catch(e){S.toast(e.message)}}
+S.setImportCustomers(importCustomers);
+
+/* legacy */
+function legacyList(name,text){if(name.toLowerCase().endsWith('.json')){var j=JSON.parse(text),arr=Array.isArray(j)?j:Object.values(j);return arr.map(function(x){return typeof x==='string'?{path:x}:{path:x.path||x.file||x.name||'',size:x.size||0}})}if(name.toLowerCase().endsWith('.csv'))return S.parseCSV(text).map(function(r){return {path:r.path||r.file||r.name||Object.values(r)[0]||'',size:r.size||0}});return text.replace(/\r/g,'').split('\n').filter(Boolean).map(function(x){return {path:x,size:0}})}
+function analyze(items){
+  var seen=new Set(apps().filter(function(f){return f.legacySource}).map(function(f){return String(f.legacySource).toLowerCase()}));
+  return items.map(function(it,i){
+    var raw=String(it.path||'').trim(),p=raw.replace(/\\/g,'/').replace(/^\/+/,''),st='MIGRATED',reason='';
+    var parts=p.split('/').filter(Boolean);
+    if(!p){st='ERROR';reason='빈 경로'}
+    else if(parts.some(function(x){return x==='..'||x==='.'})){st='ERROR';reason='상대경로 이동 토큰 금지'}
+    else if(!parts.length||/\/$/.test(p)){st='ERROR';reason='파일명 없음'}
+    else if(seen.has(p.toLowerCase())){st='DUPLICATE';reason='이미 이관됨'}
+    else seen.add(p.toLowerCase());
+    var name=parts.length?parts[parts.length-1]:'';
+    return {row:i+1,path:p,status:st,reason:reason,name:name,dirs:parts.slice(0,-1),size:S.safeNum(it.size)};
+  });
+}
+function ensureLegacyFolder(parts){
+  var root=E.fileFolders.find(function(f){return f.parentId==='root'&&f.name==='Legacy Pilot'});
+  if(!root){root={id:S.uid('FD'),name:'Legacy Pilot',parentId:'root',permission:'all',createdBy:V.user().name,createdAt:new Date().toISOString()};E.fileFolders.push(root)}
+  var parent=root.id;
+  (parts||[]).forEach(function(name){
+    var found=E.fileFolders.find(function(f){return f.parentId===parent&&f.name===name});
+    if(!found){found={id:S.uid('FD'),name:name,parentId:parent,permission:'all',createdBy:V.user().name,createdAt:new Date().toISOString()};E.fileFolders.push(found)}
+    parent=found.id;
+  });
+  return parent;
+}
+function legacyPreview(){var p=pendingLegacy,m=p.result.filter(function(x){return x.status==='MIGRATED'}).length,d=p.result.filter(function(x){return x.status==='DUPLICATE'}).length,e=p.result.filter(function(x){return x.status==='ERROR'}).length;S.openModal('<div class="modal-head"><div><h3 class="modal-title">Legacy Migration Pilot</h3><div class="modal-sub">Manifest 기반 신규 자료실 구조 이관 시뮬레이션</div></div><button class="x" onclick="closeModal()">✕</button></div><div class="modal-body"><div class="v12-summary-grid"><div><b>'+m+'</b><span>이관 가능</span></div><div><b>'+d+'</b><span>중복</span></div><div><b>'+e+'</b><span>오류</span></div></div><div class="v12-migration-table">'+p.result.slice(0,40).map(function(x){return '<div><span class="badge '+(x.status==='MIGRATED'?'b-green':x.status==='DUPLICATE'?'b-amber':'b-red')+'">'+x.status+'</span><b>'+V.esc(x.path||'(empty)')+'</b><small>'+V.esc(x.reason)+'</small></div>'}).join('')+'</div></div><div class="modal-foot"><button class="btn" id="legacyReport">결과 CSV</button><button class="btn" onclick="closeModal()">취소</button><button class="btn primary" id="legacyCommit">Pilot 이관 적용</button></div>','wide');document.querySelector('#legacyReport').onclick=function(){V.downloadText('SEIN_legacy_pilot_'+new Date().toISOString().slice(0,10)+'.csv',['row,status,path,reason'].concat(p.result.map(function(x){return x.row+','+x.status+',"'+x.path.replace(/"/g,'""')+'","'+x.reason.replace(/"/g,'""')+'"'})).join('\n'))};document.querySelector('#legacyCommit').onclick=function(){var all=apps(),ok=p.result.filter(function(x){return x.status==='MIGRATED'});ok.forEach(function(x){var folderId=ensureLegacyFolder(x.dirs);all.push({id:S.uid('LEG'),name:x.name,size:x.size,type:'legacy/manifest',scope:'Legacy Pilot',folderId:folderId,permission:'all',createdAt:new Date().toISOString(),by:V.user().name,legacyPlaceholder:true,legacySource:x.path})});setApps(all);var dd=p.result.filter(function(x){return x.status==='DUPLICATE'}).length,ee=p.result.filter(function(x){return x.status==='ERROR'}).length;E.legacyRuns.unshift({id:S.uid('LEG-RUN'),file:p.file,migrated:ok.length,duplicates:dd,errors:ee,at:new Date().toISOString()});V.save();S.saveAll(false);S.log('LEGACY_PILOT',p.file+' / migrated '+ok.length+' / duplicate '+dd+' / error '+ee);pendingLegacy=null;S.closeModal();S.render();S.toast('Pilot '+ok.length+'건 이관 기록 완료')}}
+async function importLegacy(file){if(!file)return;try{var text=await file.text();pendingLegacy={file:file.name,result:analyze(legacyList(file.name,text))};legacyPreview()}catch(e){S.toast('Legacy 파일을 읽지 못했습니다')}}
+S.setImportLegacy(importLegacy);
+
+/* backup */
+function backup(){S.saveAll(false);V.save();var p={format:'SEIN_FULL_BACKUP_V1_2',version:'v1.4.2-full',exportedAt:new Date().toISOString(),core:JSON.parse(localStorage.getItem(CORE_KEY)||'{}'),ext:E};V.downloadText('SEIN_FULL_v1.4.1_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(p,null,2),'application/json');S.log('BACKUP_EXPORT','v1.4.2-full')}
+async function restore(file){if(!file)return;try{var j=JSON.parse(await file.text());if(j.format==='SEIN_FULL_BACKUP_V1_2'){localStorage.setItem(CORE_KEY,JSON.stringify(j.core||{}));localStorage.setItem(V.key,JSON.stringify(j.ext||V.defaults()))}else if(j.version)localStorage.setItem(CORE_KEY,JSON.stringify(j));else throw new Error('형식 오류');location.reload()}catch(e){S.toast('복구 파일을 확인해 주세요')}}
+setTimeout(function(){try{S.render()}catch(e){console.warn(e)}},0);
+})();

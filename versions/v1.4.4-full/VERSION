@@ -1,0 +1,6 @@
+v1.4.4-full
+baseline=mockup-v0.2-after-kickoff
+current_site=site/full
+immutable_site=site/v1-4-4-full
+previous_immutable=site/v1-4-3-full
+change=true top-level collapse for 작업흐름 / 오늘 할 일 / 대시보드
