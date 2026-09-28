@@ -1,0 +1,13 @@
+/* SEIN UX v1.4 */
+.ux-flow-head-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ux-flow.is-collapsed{padding-bottom:14px}
+.ux-flow.is-collapsed .ux-steps,.ux-flow.is-collapsed .ux-quick{display:none}
+.ux-flow.is-collapsed .ux-flow-head{align-items:center}
+.fx-live-card{border-color:#bde5dc;background:linear-gradient(180deg,#fbfffd,#f4fbf8)}
+.fx-live-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#18a878;box-shadow:0 0 0 4px rgba(24,168,120,.10);vertical-align:2px}
+.fx-live-card .k-delta{line-height:1.5}
+.fx-live-card .k-delta b{color:#147d75}
+.fx-live-card .k-delta small{color:#7d8580;font-weight:500}
+.fx-market-note{display:grid;gap:2px;margin-top:12px;padding:10px 11px;border:1px solid #d7ebe5;border-radius:11px;background:#f5fbf8;font-size:11px}
+.fx-market-note b{color:#147d75}.fx-market-note span{font-weight:650}.fx-market-note small{color:#7d8580}
+@media(max-width:600px){.ux-flow-head-actions{margin-top:10px}.ux-flow-head-actions .btn{flex:0 0 auto}}
