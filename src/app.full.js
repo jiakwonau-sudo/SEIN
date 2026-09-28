@@ -21,7 +21,7 @@ let calendarEvents=[
   {id:'EV-2',date:'2026-09-12',title:'대성정밀 방문',type:'방문'},
   {id:'EV-3',date:'2026-09-28',title:'9월 선적 준비',type:'선적'},
 ];
-let exchange={usdkrw:1380,jpykrw:9.25,source:'하나은행 수동 fallback',updatedAt:'2026-09-26'};
+let exchange={usdkrw:1357.75,jpykrw:8.61248,source:'시장 환율 스냅샷',updatedAt:'2026-09-28 09:08 KST'};
 let audit=[];
 let globalSearch='';
 let dbPromise=null;
@@ -132,8 +132,14 @@ const oldRenderSide=renderSide;
 renderSide=function(){oldRenderSide();$$('#side .nav[data-page],#pillNav .chip[data-page]').forEach(b=>{const p=b.dataset.page;if(p==='account'||p==='ops'){if(currentUser?.role!=='admin')b.style.display='none'}b.onclick=()=>{state.page=p;history.pushState({page:p},'',`#${state.cat}/${p}`);render()}})};
 
 function pageDashFull(){
-  let h=pageDash();h=h.replace('연동 확인 중',`${W(exchange.usdkrw)}원`).replace('실제 연동 방식 검토 필요',`${exchange.source} · ${exchange.updatedAt}`);
-  h=h.replace('<div class="page-sub">','<div class="page-sub"><span class="full-chip">FULL v1.4.1</span> ');
+  let h=pageDash();
+  const usd=Number(exchange.usdkrw||0);
+  const jpy=Number(exchange.jpykrw||0);
+  const fxCard=`<div class="kpi fx-live-card"><div class="k-label">환율 연동 상태</div>
+    <div class="k-value" style="font-size:18px"><span class="fx-live-dot"></span> USD ${usd.toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2})}원</div>
+    <div class="k-delta flat">100 JPY ${(jpy*100).toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2})}원<br><small>${esc(exchange.source||'환율 데이터')} · ${esc(exchange.updatedAt||'')}</small></div></div>`;
+  h=h.replace(/<div class="kpi"><div class="k-label">하나은행 환율<\/div>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>\s*<div class="split">/,fxCard+'</div><div class="split">');
+  h=h.replace('<div class="page-sub">','<div class="page-sub"><span class="full-chip">FULL v1.4.2</span> ');
   return h;
 }
 
