@@ -11,7 +11,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Check v1.4.2 published URLs
+      - name: Check v1.4.3 published URLs and cache-busted assets
         shell: bash
         run: |
           set -euo pipefail
@@ -25,7 +25,8 @@ jobs:
             grep -F "$marker" "$tmp" >/dev/null
           }
           BASE="https://jiakwonau-sudo.github.io/SEIN"
-          check "$BASE/full/" "FULL v1.4.2"
-          check "$BASE/v1-4-2-full/" "FULL v1.4.2"
-          check "$BASE/full/collapse.v1.4.2.css" "real collapse"
-          check "$BASE/full/collapse.v1.4.2.js" "true section collapse"
+          check "$BASE/full/" "FULL v1.4.3"
+          check "$BASE/v1-4-3-full/" "FULL v1.4.3"
+          check "$BASE/full/collapse.v1.4.3.css" "real collapse"
+          check "$BASE/full/collapse.v1.4.3.js" "observer loop fixed"
+          check "$BASE/full/ux.v1.4.3.js" "observer-stable UX enhancements"
