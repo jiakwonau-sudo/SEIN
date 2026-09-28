@@ -11,3 +11,13 @@
 .fx-market-note{display:grid;gap:2px;margin-top:12px;padding:10px 11px;border:1px solid #d7ebe5;border-radius:11px;background:#f5fbf8;font-size:11px}
 .fx-market-note b{color:#147d75}.fx-market-note span{font-weight:650}.fx-market-note small{color:#7d8580}
 @media(max-width:600px){.ux-flow-head-actions{margin-top:10px}.ux-flow-head-actions .btn{flex:0 0 auto}}
+/* UX iteration 1/10 */
+.ux14-more-backdrop{position:fixed;inset:0;background:rgba(24,29,26,.34);backdrop-filter:blur(3px);z-index:260}
+.ux14-more-sheet{position:fixed;left:10px;right:10px;bottom:10px;z-index:261;background:#fffdfa;border:1px solid var(--line);border-radius:20px;padding:8px 14px 16px;box-shadow:0 28px 80px rgba(24,29,26,.24)}
+.ux14-sheet-handle{width:38px;height:4px;border-radius:999px;background:#d8d2ca;margin:2px auto 10px}
+.ux14-sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ux14-sheet-head b{font-size:15px}
+.ux14-sheet-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ux14-sheet-grid button{display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid #e5dfd7;border-radius:13px;background:#faf8f4;font-weight:650;text-align:left}
+.ux14-sheet-grid button:active{background:var(--brand-soft);border-color:#bde5dc}
+@media(min-width:821px){.ux14-more-backdrop,.ux14-more-sheet{display:none!important}}
