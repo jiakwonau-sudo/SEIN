@@ -48,7 +48,7 @@ function syncFlowButton(flow,btn){
   const c=flow.classList.contains('is-collapsed');
   btn.textContent=c?'펼치기 ▾':'접기 ▴';btn.setAttribute('aria-expanded',String(!c));btn.setAttribute('aria-label','업무 흐름 '+(c?'펼치기':'접기'));
 }
-function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention();enhanceTables();observeModalValidation();enhanceStatusA11y();observeSaveStatus();enhanceSearchFeedback()}
+function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention();enhanceTables();observeModalValidation();observeModalUX();enhanceStatusA11y();observeSaveStatus();enhanceSearchFeedback()}
 const mo=new MutationObserver(()=>requestAnimationFrame(enhance));
 const start=()=>{restoreUIPrefs();enhance();const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
@@ -255,6 +255,34 @@ function enhanceSearchFeedback(){
       b.onclick=()=>{state.goodsFilter='all';saveUIPrefs();S.render()};empty.appendChild(b);
     }
   }
+}
+
+
+/* UX iteration 9/10 — modal focus and long-form ergonomics */
+function enhanceModalUX(){
+  const overlay=document.getElementById('overlay'),modal=document.querySelector('#modal');
+  if(!overlay?.classList.contains('open')||!modal)return;
+  modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');
+  if(!modal.dataset.ux14Trap){
+    modal.dataset.ux14Trap='1';
+    modal.addEventListener('keydown',e=>{
+      if(e.key!=='Tab')return;
+      const focusable=[...modal.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex]:not([tabindex="-1"])')].filter(x=>x.offsetParent!==null);
+      if(!focusable.length)return;
+      const first=focusable[0],last=focusable[focusable.length-1];
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+    });
+  }
+  if(!modal.contains(document.activeElement)||document.activeElement===document.body){
+    const first=modal.querySelector('input:not([type="hidden"]):not(:disabled),select:not(:disabled),textarea:not(:disabled),button:not(:disabled)');
+    setTimeout(()=>first?.focus(),0);
+  }
+}
+function observeModalUX(){
+  const overlay=document.getElementById('overlay');if(!overlay||overlay.dataset.ux14ModalUX)return;
+  overlay.dataset.ux14ModalUX='1';
+  new MutationObserver(()=>setTimeout(()=>{enhanceModalUX();setupModalValidation()},0)).observe(overlay,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 }
 
 window.SEIN_UX14={FX,enhance,openMoreSheet,closeMoreSheet,saveUIPrefs};

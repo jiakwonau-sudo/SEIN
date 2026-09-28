@@ -59,3 +59,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .ux14-result-count{font-size:10.5px;color:#858c87;font-weight:650;white-space:nowrap}
 .ux14-search-meta{padding:7px 10px;margin-bottom:4px;border-radius:9px;background:#f6f3ee;color:#747b76;font-size:10.5px}
 .empty [data-reset-stage]{margin-top:12px}
+
+/* UX iteration 9/10 */
+.modal-head{position:sticky;top:0;z-index:6;background:#fffdfa}
+.modal-foot{position:sticky;bottom:0;z-index:6;background:#faf8f4}
+.modal-body{overscroll-behavior:contain}
+.modal-foot .btn.danger:first-child{margin-right:auto}
+@media(max-width:600px){.overlay{padding:16px 10px}.modal-body{max-height:68vh}.modal-head{padding:15px 16px}.modal-foot{padding:12px 16px}}
