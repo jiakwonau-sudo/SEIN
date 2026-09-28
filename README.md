@@ -1,16 +1,14 @@
-# SEIN — 세인코퍼레이션 통합 관리 시스템
+# SEIN
 
-## Current release
-- Version: `v1.4.3-full`
+Current release: `v1.3.1-full`
+
 - Current: `site/full/`
-- Immutable: `site/v1-4-3-full/`
+- Immutable: `site/v1-3-1-full/`
+- Previous: `site/v1-3-0-full/`
 
-## v1.4.3
-- 접기/펼치기 토글 프리즈 수정
-- collapse MutationObserver feedback loop 제거
-- UX v1.4 context bar / FX / flow enhancer feedback loop 제거
-- DOM enhancement callback coalescing
-- cache-bust: `ux.v1.4.3.js`, `collapse.v1.4.3.js/css`
-- 전체 runtime JS + inline scripts 정적 문법 검사 PASS
+v1.3.1 changes dashboard information architecture:
+- 작업흐름
+- 오늘 할 일
+- 대시보드
 
-기존 v1.4.2 기능은 유지한다.
+All three are independently collapsible and persist collapsed state.
