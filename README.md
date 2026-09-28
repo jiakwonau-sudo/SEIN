@@ -1,14 +1,9 @@
 # SEIN
 
-Current release: `v1.3.1-full`
+Current release: `v1.4.4-full`
 
 - Current: `site/full/`
-- Immutable: `site/v1-3-1-full/`
-- Previous: `site/v1-3-0-full/`
+- Immutable: `site/v1-4-4-full/`
+- Previous: `site/v1-4-3-full/`
 
-v1.3.1 changes dashboard information architecture:
-- 작업흐름
-- 오늘 할 일
-- 대시보드
-
-All three are independently collapsible and persist collapsed state.
+v1.4.4 fixes the dashboard collapse model so that collapsed sections leave only a compact title row.
