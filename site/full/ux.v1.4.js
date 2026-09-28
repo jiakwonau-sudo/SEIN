@@ -1,4 +1,4 @@
-/* SEIN UX v1.4 base — flow toggle + verified market FX snapshot */
+/* SEIN UX v1.4.3 — observer-stable UX enhancements */
 (function(){
 'use strict';
 const S=window.SEIN_INTERNAL,V=window.SEIN_V12;if(!S)return;
@@ -15,6 +15,7 @@ const FX_SESSION_KEY='sein.fx.market.20260928-0908';
 function applyFX(){
   if(!sessionStorage.getItem(FX_SESSION_KEY)){S.setExchange(FX);S.saveAll(false);sessionStorage.setItem(FX_SESSION_KEY,'1');}
   document.querySelectorAll('.kpi').forEach(card=>{
+    if(card.classList.contains('fx-live-card'))return;
     const label=card.querySelector('.k-label');
     if(!label||!/(하나은행 환율|환율 연동 상태)/.test(label.textContent))return;
     label.textContent='환율 연동 상태';
@@ -47,13 +48,24 @@ function flowToggle(){
 }
 function syncFlowButton(flow,btn){
   const c=flow.classList.contains('is-collapsed');
-  btn.textContent=c?'크게 보기':'간단히 보기';
-  btn.removeAttribute('aria-expanded');
-  btn.setAttribute('aria-pressed',String(c));
-  btn.setAttribute('aria-label','업무 흐름 '+(c?'크게 보기':'간단히 보기'));
+  const text=c?'크게 보기':'간단히 보기';
+  const pressed=String(c);
+  const aria='업무 흐름 '+text;
+  if(btn.textContent!==text)btn.textContent=text;
+  if(btn.hasAttribute('aria-expanded'))btn.removeAttribute('aria-expanded');
+  if(btn.getAttribute('aria-pressed')!==pressed)btn.setAttribute('aria-pressed',pressed);
+  if(btn.getAttribute('aria-label')!==aria)btn.setAttribute('aria-label',aria);
 }
 function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention();enhanceTables();observeModalValidation();observeModalUX();enhanceStatusA11y();observeSaveStatus();enhanceSearchFeedback();enhanceContextBar()}
-const mo=new MutationObserver(()=>requestAnimationFrame(enhance));
+let ux14EnhanceQueued=false;
+const mo=new MutationObserver(()=>{
+  if(ux14EnhanceQueued)return;
+  ux14EnhanceQueued=true;
+  requestAnimationFrame(()=>{
+    ux14EnhanceQueued=false;
+    enhance();
+  });
+});
 const start=()=>{restoreUIPrefs();enhance();const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 
@@ -303,12 +315,20 @@ function contextNames(){
 }
 function enhanceContextBar(){
   const main=document.getElementById('main');if(!main)return;
-  main.querySelector('.ux14-contextbar')?.remove();
-  const n=contextNames(),bar=document.createElement('div');bar.className='ux14-contextbar';
-  bar.innerHTML='<div class="ux14-context-path"><span>'+n.cat+'</span><i>›</i><b>'+n.page+'</b></div>'+
-    '<div class="ux14-context-meta"><span>'+n.user+'</span>'+(state.page!=='dash'&&state.cat!=='calendar'?'<button class="btn xs" data-context-home>대시보드</button>':'')+'</div>';
-  main.prepend(bar);
-  bar.querySelector('[data-context-home]')?.addEventListener('click',()=>ux14Go('dash',state.cat));
+  const n=contextNames();
+  const sig=[n.cat,n.page,n.user,state.page,state.cat].join('|');
+  let bar=main.querySelector('.ux14-contextbar');
+  if(!bar){
+    bar=document.createElement('div');
+    bar.className='ux14-contextbar';
+    main.prepend(bar);
+  }
+  if(bar.dataset.ux14Sig!==sig){
+    bar.dataset.ux14Sig=sig;
+    bar.innerHTML='<div class="ux14-context-path"><span>'+n.cat+'</span><i>›</i><b>'+n.page+'</b></div>'+
+      '<div class="ux14-context-meta"><span>'+n.user+'</span>'+(state.page!=='dash'&&state.cat!=='calendar'?'<button class="btn xs" data-context-home>대시보드</button>':'')+'</div>';
+    bar.querySelector('[data-context-home]')?.addEventListener('click',()=>ux14Go('dash',state.cat));
+  }
 }
 
 window.SEIN_UX14={FX,enhance,openMoreSheet,closeMoreSheet,saveUIPrefs};
