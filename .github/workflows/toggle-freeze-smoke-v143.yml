@@ -1,0 +1,70 @@
+name: Toggle Freeze Smoke v1.4.3
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/toggle-freeze-smoke-v143.yml"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm i playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+      - name: Click collapse toggles and check responsiveness
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:1440,height:1000}});
+            const errors=[];
+            page.on('pageerror',e=>errors.push('pageerror: '+e.message));
+            page.on('console',m=>{if(m.type()==='error')errors.push('console: '+m.text())});
+            const url='https://jiakwonau-sudo.github.io/SEIN/full/?toggleSmoke=v143';
+            const resp=await page.goto(url,{waitUntil:'networkidle',timeout:30000});
+            if(!resp || resp.status()!==200)throw new Error('FULL HTTP '+(resp&&resp.status()));
+            await page.locator('#loginBtn').click();
+            await page.waitForSelector('#loginGate',{state:'detached'});
+            await page.waitForTimeout(700);
+
+            async function testToggle(selector,name){
+              let b=page.locator(selector).first();
+              if(await b.count()===0)throw new Error('Missing toggle: '+name);
+              const before=(await b.textContent()||'').trim();
+              await b.click({timeout:3000});
+              await page.waitForTimeout(150);
+              b=page.locator(selector).first();
+              const after=(await b.textContent()||'').trim();
+              if(before===after)throw new Error('Toggle label did not change: '+name+' ('+before+')');
+              await page.evaluate(()=>({h:document.body.offsetHeight,ready:document.readyState}));
+              await b.click({timeout:3000});
+              await page.waitForTimeout(150);
+              b=page.locator(selector).first();
+              const back=(await b.textContent()||'').trim();
+              if(back!==before)throw new Error('Toggle did not restore: '+name+' '+before+' -> '+after+' -> '+back);
+              console.log('PASS toggle '+name+' '+before+' -> '+after+' -> '+back);
+            }
+            await testToggle('[data-flow-toggle]','flow');
+            await testToggle('[data-v142-collapse^="today:"]','today');
+            await testToggle('[data-v142-collapse^="kpi:"]','kpi');
+            await testToggle('[data-v142-collapse^="card:"]','card');
+            await testToggle('[data-v142-dashboard]','dashboard');
+
+            const q=page.locator('#quickFind');
+            await q.click({timeout:3000});
+            await page.waitForSelector('#gSearch',{timeout:3000});
+            await page.keyboard.press('Escape');
+            await page.waitForTimeout(150);
+            if(errors.length)throw new Error(errors.join(' | '));
+            console.log('PASS all collapse toggles + search responsive + no-page-errors');
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
