@@ -48,7 +48,7 @@ function syncFlowButton(flow,btn){
   const c=flow.classList.contains('is-collapsed');
   btn.textContent=c?'펼치기 ▾':'접기 ▴';btn.setAttribute('aria-expanded',String(!c));btn.setAttribute('aria-label','업무 흐름 '+(c?'펼치기':'접기'));
 }
-function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention();enhanceTables()}
+function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention();enhanceTables();observeModalValidation()}
 const mo=new MutationObserver(()=>requestAnimationFrame(enhance));
 const start=()=>{restoreUIPrefs();enhance();const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
@@ -167,6 +167,49 @@ function enhanceTables(){
       const h=document.createElement('div');h.className='ux14-scroll-hint';h.innerHTML='<span>↔</span> 좌우로 밀어 더 보기';w.before(h);
     }else if(!overflow&&prev&&prev.classList.contains('ux14-scroll-hint'))prev.remove();
   });
+}
+
+
+/* UX iteration 6/10 — inline required-field validation */
+const FORM_RULES=[
+  {button:'#efSave',fields:['#efModel','#efNo']},
+  {button:'#cfSave',fields:['#cfCo','#cfP']},
+  {button:'#dSave',fields:['#dName'],extra:()=>!!document.querySelector('.dealEq:checked')},
+  {button:'#qSave',fields:['#qAmt'],extra:()=>Number(document.querySelector('#qAmt')?.value||0)>0},
+  {button:'#evSave',fields:['#evTitle']},
+  {button:'#ldSave',fields:['#ldDate','#ldAmount'],extra:()=>Number(document.querySelector('#ldAmount')?.value||0)>0},
+  {button:'#dySave',fields:['#dyDate']},
+  {button:'#folderSave',fields:['#folderName']},
+  {button:'#miSave',fields:['#miName']},
+  {button:'#yearSave',fields:['#yearValue']}
+];
+function setupModalValidation(){
+  const modal=document.querySelector('#modal');if(!modal)return;
+  const rule=FORM_RULES.find(r=>modal.querySelector(r.button));if(!rule)return;
+  const btn=modal.querySelector(rule.button);if(!btn)return;
+  const fields=rule.fields.map(s=>modal.querySelector(s)).filter(Boolean);
+  fields.forEach(f=>{
+    f.required=true;f.setAttribute('aria-required','true');
+    const label=f.closest('.f')?.querySelector('label');
+    if(label&&!label.querySelector('.ux14-req')){const s=document.createElement('span');s.className='ux14-req';s.textContent=' *';label.appendChild(s)}
+  });
+  let hint=modal.querySelector('.ux14-form-hint');
+  if(!hint){hint=document.createElement('span');hint.className='ux14-form-hint';modal.querySelector('.modal-foot')?.prepend(hint)}
+  const valid=()=>fields.every(f=>String(f.value||'').trim()!=='')&&(!rule.extra||rule.extra());
+  const paint=()=>{
+    const ok=valid();btn.disabled=!ok;btn.setAttribute('aria-disabled',String(!ok));
+    if(hint){hint.textContent=ok?'필수 항목 입력 완료':'* 필수 항목을 입력해 주세요';hint.classList.toggle('ok',ok)}
+  };
+  fields.forEach(f=>{
+    f.addEventListener('input',paint);f.addEventListener('change',paint);
+    f.addEventListener('blur',()=>f.classList.toggle('ux14-invalid',String(f.value||'').trim()===''));
+  });
+  modal.querySelectorAll('input[type="checkbox"],select').forEach(x=>x.addEventListener('change',paint));
+  paint();
+}
+function observeModalValidation(){
+  const overlay=document.getElementById('overlay');if(!overlay||overlay.dataset.ux14Validation)return;
+  overlay.dataset.ux14Validation='1';new MutationObserver(()=>setTimeout(setupModalValidation,0)).observe(overlay,{childList:true,subtree:true});
 }
 
 window.SEIN_UX14={FX,enhance,openMoreSheet,closeMoreSheet,saveUIPrefs};

@@ -43,3 +43,10 @@
 .ux14-scroll-hint{display:none;align-items:center;gap:5px;margin:0 0 6px;color:#89908b;font-size:10.5px;font-weight:600}
 .ux14-scroll-hint span{color:#168f86;font-size:13px}
 @media(max-width:820px){.ux14-scroll-hint{display:flex}}
+
+/* UX iteration 6/10 */
+.ux14-req{color:#c65b56;font-weight:800}
+.ux14-invalid{border-color:#d96a64!important;box-shadow:0 0 0 3px rgba(198,91,86,.10)!important}
+.ux14-form-hint{margin-right:auto;font-size:10.5px;color:#a45c56;font-weight:600;align-self:center}
+.ux14-form-hint.ok{color:#4c856e}
+.modal-foot .btn:disabled{opacity:.42;cursor:not-allowed;transform:none!important;box-shadow:none!important}
