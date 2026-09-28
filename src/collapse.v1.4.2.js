@@ -40,13 +40,24 @@ function bindCollapse(root,bodySelector,key,label,buttonHost){
 function enhanceFlow(){
   const flow=document.querySelector('.ux-flow');if(!flow)return;
   const head=flow.querySelector('.ux-flow-head');if(!head)return;
-  const old=head.querySelector('[data-flow-toggle]');
-  if(old)old.remove();
   let actions=head.querySelector('.ux-flow-head-actions');
   if(!actions){actions=document.createElement('div');actions.className='ux-flow-head-actions';head.appendChild(actions)}
-  bindCollapse(flow,'.ux-steps,.ux-quick', 'flow', '업무 흐름', actions);
+  let btn=flow.querySelector('[data-flow-toggle]');
+  if(!btn){
+    btn=document.createElement('button');btn.className='btn sm';btn.dataset.flowToggle='1';actions.appendChild(btn);
+  }
+  btn.dataset.v142Collapse='flow';
+  const apply=collapsed=>{
+    flow.classList.toggle('ux142-collapsed',collapsed);
+    flow.classList.toggle('is-collapsed',collapsed);
+    localStorage.setItem('sein.ux.flowCollapsed',collapsed?'1':'0');
+    write('flow',collapsed);
+    syncButton(btn,collapsed,'업무 흐름');
+  };
+  const collapsed=localStorage.getItem(PREFIX+'flow')!==null?read('flow'):localStorage.getItem('sein.ux.flowCollapsed')==='1';
+  apply(collapsed);
+  btn.onclick=e=>{e.stopPropagation();apply(!flow.classList.contains('ux142-collapsed'))};
 }
-
 function enhanceAttention(){
   const sec=document.querySelector('.ux14-attention');if(!sec)return;
   const head=sec.querySelector('.ux14-attention-head');if(!head)return;
