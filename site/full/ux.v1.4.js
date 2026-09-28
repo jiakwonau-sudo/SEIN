@@ -11,8 +11,9 @@ const FX={
   market:true
 };
 const FLOW_KEY='sein.ux.flowCollapsed';
+const FX_SESSION_KEY='sein.fx.market.20260928-0908';
 function applyFX(){
-  S.setExchange(FX);S.saveAll(false);
+  if(!sessionStorage.getItem(FX_SESSION_KEY)){S.setExchange(FX);S.saveAll(false);sessionStorage.setItem(FX_SESSION_KEY,'1');}
   document.querySelectorAll('.kpi').forEach(card=>{
     const label=card.querySelector('.k-label');
     if(!label||!/(하나은행 환율|환율 연동 상태)/.test(label.textContent))return;
