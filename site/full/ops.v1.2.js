@@ -10,7 +10,7 @@ function qbadge(q){var c=q.status==='Sent'?'b-green':q.status==='Partial Failure
 function page(){
  if(!V.isAdmin())return '<div class="card"><div class="denied"><div class="lk">🔒</div><h3>대표자 전용 운영 도구입니다</h3></div></div>';
  var im=E.importRuns[0],lg=E.legacyRuns[0],ex=S.getExchange(),mq=mail();
- return '<div class="page-head"><div><h1 class="page-title">운영 도구</h1><div class="page-sub">외부 시스템은 MOCK Adapter · 내부 검증/리포트는 실제 동작</div></div><span class="full-chip">FULL v1.4.0</span></div>'+
+ return '<div class="page-head"><div><h1 class="page-title">운영 도구</h1><div class="page-sub">외부 시스템은 MOCK Adapter · 내부 검증/리포트는 실제 동작</div></div><span class="full-chip">FULL v1.4.1</span></div>'+
  '<div class="ops-grid">'+
  '<section class="ops-card v12-connector"><div class="v12-card-top"><h3>Gmail Mock Adapter</h3>'+badge(E.integration.gmail)+'</div><p>OAuth 없이 연결, 배치 발송, 실패, 재시도 흐름을 시연합니다.</p><div class="form-actions"><button class="btn sm" id="gmailMockConnect">'+(E.integration.gmail.connected?'연결 해제':'Mock 연결')+'</button><button class="btn primary sm" id="mailRun">대기 큐 실행</button><button class="btn sm" id="mailRetry">실패 재시도</button></div><div class="v12-mini-list">'+(mq.length?mq.slice(0,5).map(function(q){return '<div><b>'+V.esc(q.subject||q.id)+'</b>'+qbadge(q)+'<span>'+((q.batches&&q.batches.length)||1)+' batch · '+(q.sent||0)+'/'+(q.total||0)+(q.failed?' · 실패 '+q.failed:'')+'</span></div>'}).join(''):'<span class="muted">메일 큐 없음</span>')+'</div></section>'+
  '<section class="ops-card v12-connector"><div class="v12-card-top"><h3>Hana FX Mock Adapter</h3>'+badge(E.integration.fx)+'</div><p>실제 하나은행 호출 없이 동기화/장애 fallback 상태를 시연합니다.</p><div class="metric-row"><div class="metric-mini"><b>'+V.money(ex.usdkrw)+'</b>USD/KRW</div><div class="metric-mini"><b>'+ex.jpykrw+'</b>JPY/KRW</div></div><div class="form-actions"><button class="btn sm" id="fxMockConnect">'+(E.integration.fx.connected?'연결 해제':'Mock 연결')+'</button><button class="btn primary sm" id="fxMockSync">Mock 동기화</button><button class="btn sm" id="fxFallback">장애 Fallback</button></div></section>'+
@@ -84,7 +84,7 @@ async function importLegacy(file){if(!file)return;try{var text=await file.text()
 S.setImportLegacy(importLegacy);
 
 /* backup */
-function backup(){S.saveAll(false);V.save();var p={format:'SEIN_FULL_BACKUP_V1_2',version:'v1.4.0-full',exportedAt:new Date().toISOString(),core:JSON.parse(localStorage.getItem(CORE_KEY)||'{}'),ext:E};V.downloadText('SEIN_FULL_v1.4.0_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(p,null,2),'application/json');S.log('BACKUP_EXPORT','v1.4.0-full')}
+function backup(){S.saveAll(false);V.save();var p={format:'SEIN_FULL_BACKUP_V1_2',version:'v1.4.1-full',exportedAt:new Date().toISOString(),core:JSON.parse(localStorage.getItem(CORE_KEY)||'{}'),ext:E};V.downloadText('SEIN_FULL_v1.4.1_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(p,null,2),'application/json');S.log('BACKUP_EXPORT','v1.4.1-full')}
 async function restore(file){if(!file)return;try{var j=JSON.parse(await file.text());if(j.format==='SEIN_FULL_BACKUP_V1_2'){localStorage.setItem(CORE_KEY,JSON.stringify(j.core||{}));localStorage.setItem(V.key,JSON.stringify(j.ext||V.defaults()))}else if(j.version)localStorage.setItem(CORE_KEY,JSON.stringify(j));else throw new Error('형식 오류');location.reload()}catch(e){S.toast('복구 파일을 확인해 주세요')}}
 setTimeout(function(){try{S.render()}catch(e){console.warn(e)}},0);
 })();

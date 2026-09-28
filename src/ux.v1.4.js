@@ -47,7 +47,10 @@ function flowToggle(){
 }
 function syncFlowButton(flow,btn){
   const c=flow.classList.contains('is-collapsed');
-  btn.textContent=c?'펼치기 ▾':'접기 ▴';btn.setAttribute('aria-expanded',String(!c));btn.setAttribute('aria-label','업무 흐름 '+(c?'펼치기':'접기'));
+  btn.textContent=c?'크게 보기':'간단히 보기';
+  btn.removeAttribute('aria-expanded');
+  btn.setAttribute('aria-pressed',String(c));
+  btn.setAttribute('aria-label','업무 흐름 '+(c?'크게 보기':'간단히 보기'));
 }
 function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints();enhanceAttention();enhanceTables();observeModalValidation();observeModalUX();enhanceStatusA11y();observeSaveStatus();enhanceSearchFeedback();enhanceContextBar()}
 const mo=new MutationObserver(()=>requestAnimationFrame(enhance));
