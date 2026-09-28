@@ -1,20 +1,23 @@
-# SEIN FULL SYSTEM v1.4.1
+# SEIN FULL SYSTEM v1.4.2
 
-## UI hierarchy refinement
-v1.4.0 기능과 UX 구조를 유지하면서 정보 계층만 조정했다.
+## Collapse behavior
+- 업무 흐름: 접으면 헤더 한 줄만 남고 단계/빠른 실행은 완전히 숨김.
+- 오늘 할 일: 접으면 제목 행만 남김.
+- 대시보드 전체: 접으면 페이지 헤더만 남김.
+- 대시보드 하위: 핵심 지표, 영업 현황, 매입 진행, 설비 상태 분포, 환율 섹션을 각각 독립적으로 접을 수 있음.
+- 접힘 상태는 localStorage에 기억.
 
-원칙:
-- 현재 상태, 핵심 숫자, 1순위 행동은 크게 표시
-- 설명, 날짜, 경로, 작성자, 보조 메타는 작게 표시
-- 업무 정보는 숨기지 않음
-- 기존 "접기"는 내용을 삭제하지 않는 compact mode로 변경
-- 모바일에서도 저장상태, 로고 보조문구, 컨텍스트 메타를 작은 텍스트로 유지
+## Exchange rate display
+대시보드 본체가 환율을 직접 렌더한다.
+- USD/KRW
+- 100 JPY/KRW
+- source / updatedAt
+후처리 스크립트에만 의존하지 않는다.
 
 ## Functional scope
-v1.4.0의 WBS Build/Integration 및 Mock Adapter 범위를 그대로 유지한다.
+v1.4.1의 WBS Build/Integration 기능과 권한/회계/Import/Legacy/Mock Adapter 범위를 그대로 유지한다.
 
 ## Design
 - Pretendard Variable
 - warm neutral + mint/teal
-- strong primary/secondary type hierarchy
-- no content removal for visual simplification
+- true accordion collapse with minimal header trace
