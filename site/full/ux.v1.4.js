@@ -48,7 +48,7 @@ function syncFlowButton(flow,btn){
   const c=flow.classList.contains('is-collapsed');
   btn.textContent=c?'펼치기 ▾':'접기 ▴';btn.setAttribute('aria-expanded',String(!c));btn.setAttribute('aria-label','업무 흐름 '+(c?'펼치기':'접기'));
 }
-function enhance(){flowToggle();applyFX();enhanceMobileMore()}
+function enhance(){flowToggle();applyFX();enhanceMobileMore();enhanceKeyboardHints()}
 const mo=new MutationObserver(()=>requestAnimationFrame(enhance));
 const start=()=>{enhance();const main=document.getElementById('main');if(main)mo.observe(main,{childList:true,subtree:true})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
@@ -85,6 +85,24 @@ function enhanceMobileMore(){
     bar.style.gridTemplateColumns='repeat(5,1fr)';
   }
 }
+
+
+/* UX iteration 2/10 — keyboard and dismiss ergonomics */
+function enhanceKeyboardHints(){
+  const q=document.getElementById('quickFind');
+  if(q){q.setAttribute('aria-keyshortcuts','Control+K Meta+K /');q.title='통합 검색 · Ctrl/Cmd+K 또는 /';}
+}
+document.addEventListener('keydown',e=>{
+  const key=e.key.toLowerCase();
+  if((e.ctrlKey||e.metaKey)&&key==='k'){
+    e.preventDefault();document.getElementById('quickFind')?.click();return;
+  }
+  if(e.key==='Escape'){
+    if(document.querySelector('.ux14-more-sheet')){closeMoreSheet();return;}
+    const next=document.querySelector('.ux-next');if(next){next.remove();return;}
+    const overlay=document.getElementById('overlay');if(overlay?.classList.contains('open')){S.closeModal();return;}
+  }
+},true);
 
 window.SEIN_UX14={FX,enhance,openMoreSheet,closeMoreSheet};
 })();
