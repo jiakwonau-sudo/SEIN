@@ -1,7 +1,7 @@
-v1.4.2-full
+v1.4.3-full
 baseline=mockup-v0.2-after-kickoff
 current_site=site/full
-immutable_site=site/v1-4-2-full
-previous_immutable=site/v1-4-1-full
-change=true collapse: header trace only + dashboard/today/cards collapsible + direct USD/JPY dashboard display
+immutable_site=site/v1-4-3-full
+previous_immutable=site/v1-4-2-full
+change=fix collapse/UX MutationObserver feedback loops + cache-bust assets
 external_integrations=MOCK except verified market FX snapshot display
