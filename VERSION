@@ -1,7 +1,7 @@
-v1.3.0-full
+v1.4.0-full
 baseline=mockup-v0.2-after-kickoff
 current_site=site/full
-immutable_site=site/v1-3-0-full
-previous_immutable=site/v1-2-1-full
-validation=10 manual static requirement iterations, no JQA
-external_integrations=MOCK
+immutable_site=site/v1-4-0-full
+previous_immutable=site/v1-3-0-full
+validation=10 UX iterations + static syntax/marker + HTTP only, no JQA
+external_integrations=MOCK except verified market FX snapshot display
