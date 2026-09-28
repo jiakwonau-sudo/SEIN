@@ -1,35 +1,20 @@
-# SEIN FULL SYSTEM v1.4.0
+# SEIN FULL SYSTEM v1.4.1
 
-Baseline: Mockup v0.2 + v1.3.0 기능 완성본.
+## UI hierarchy refinement
+v1.4.0 기능과 UX 구조를 유지하면서 정보 계층만 조정했다.
 
-## Requested changes
-- "업무를 끊기지 않게 이어갑니다" 섹션 접기/펼치기
-- 접힘 상태 localStorage 기억
-- 실제 시장환율 스냅샷 표시
-  - USD/KRW 1,357.75
-  - JPY/KRW 8.61248
-  - 100 JPY/KRW 861.248
-  - 기준 2026-09-28 09:08 KST
-- 환율 Mock/Fallback 조작과 충돌하지 않도록 실환율 스냅샷은 세션 시작 시 1회 적용
-
-## UX 10 iterations
-1. 모바일 더보기 바텀시트
-2. Ctrl/Cmd+K 검색, Esc 닫기
-3. 대시보드 오늘 할 일
-4. 필터/회계/캘린더 작업맥락 기억
-5. 표 가로 스크롤 힌트와 포커스
-6. 필수값 인라인 검증/저장 활성 조건
-7. aria-live/focus ring/reduced-motion
-8. 검색 결과 건수/0건 회복 액션
-9. 모달 focus trap 및 긴 폼 ergonomics
-10. 카테고리/페이지/계정 컨텍스트 바
+원칙:
+- 현재 상태, 핵심 숫자, 1순위 행동은 크게 표시
+- 설명, 날짜, 경로, 작성자, 보조 메타는 작게 표시
+- 업무 정보는 숨기지 않음
+- 기존 "접기"는 내용을 삭제하지 않는 compact mode로 변경
+- 모바일에서도 저장상태, 로고 보조문구, 컨텍스트 메타를 작은 텍스트로 유지
 
 ## Functional scope
-v1.3.0의 B-001~B-011, I-001~I-005 browser-functional 범위를 유지한다.
-Gmail, Hana FX simulation, Supabase DB는 실제 전송/서버 연결이 아닌 Mock Adapter다.
-시장환율은 실제 확인된 시점의 스냅샷이며 실시간 API 연동이라고 표시하지 않는다.
+v1.4.0의 WBS Build/Integration 및 Mock Adapter 범위를 그대로 유지한다.
 
-## Storage
-- Core/UX state: localStorage/sessionStorage
-- browser file bytes: IndexedDB
-- deployment: GitHub Pages
+## Design
+- Pretendard Variable
+- warm neutral + mint/teal
+- strong primary/secondary type hierarchy
+- no content removal for visual simplification

@@ -1,9 +1,7 @@
-# SEIN Restore — v1.4.0
+# SEIN Restore — v1.4.1
 
-- Browser immutable snapshot: `site/v1-4-0-full/`
-- Full source archive: `versions/v1.4.0-full/`
-- Release branch: `release/v1.4.0-full`
+- Browser immutable snapshot: `site/v1-4-1-full/`
+- Source archive: `versions/v1.4.1-full/`
+- Release branch: `release/v1.4.1-full`
 
-Restore the immutable runtime files to `site/full/` and `src/`, then restore VERSION/SPEC/README/RESTORE from the archive.
-
-Browser data backup is exported from 운영 도구. Uploaded file bytes remain in IndexedDB until a production storage layer is connected.
+v1.4.1은 v1.4.0의 기능을 유지하고 시각적 정보 계층만 조정한 버전이다.

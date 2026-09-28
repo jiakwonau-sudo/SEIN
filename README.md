@@ -1,15 +1,14 @@
 # SEIN — 세인코퍼레이션 통합 관리 시스템
 
 ## Current release
-- Version: `v1.4.0-full`
+- Version: `v1.4.1-full`
 - Current: `site/full/`
-- Immutable: `site/v1-4-0-full/`
-- Baseline: `baseline/mockup-v0.2-after-kickoff.html`
+- Immutable: `site/v1-4-1-full/`
 
-v1.4.0 retains v1.3.0 functional coverage and adds:
-- collapsible workflow guidance
-- verified market FX snapshot display
-- 10 UX improvement iterations
-- existing premium/crisp Pretendard visual system
+## v1.4.1
+중요 정보를 크게, 보조 정보를 작게 표시하되 업무 정보는 숨기지 않는 정보 계층 개선 버전.
 
-See `UX_ITERATION_10_LOG.md` and `SPEC.md`.
+- workflow compact mode retains all steps/text
+- mobile secondary metadata remains visible
+- KPI/current status/attention numbers emphasized
+- secondary descriptions, dates, paths, authors reduced in size
