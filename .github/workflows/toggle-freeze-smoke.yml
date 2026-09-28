@@ -35,24 +35,28 @@ jobs:
             await page.waitForSelector('#loginGate',{state:'detached'});
             await page.waitForTimeout(700);
 
-            const toggles=page.locator('button.ux142-collapse-btn:visible,button[data-flow-toggle]:visible,button[data-v142-dashboard]:visible');
-            const count=await toggles.count();
-            if(count<3)throw new Error('Expected collapse toggles, got '+count);
-
-            const tested=Math.min(count,5);
-            for(let i=0;i<tested;i++){
-              const b=toggles.nth(i);
+            async function testToggle(selector,name){
+              let b=page.locator(selector).first();
+              if(await b.count()===0)throw new Error('Missing toggle: '+name);
               const before=(await b.textContent()||'').trim();
               await b.click({timeout:3000});
-              await page.waitForTimeout(120);
+              await page.waitForTimeout(150);
+              b=page.locator(selector).first();
               const after=(await b.textContent()||'').trim();
-              if(before===after)throw new Error('Toggle label did not change at index '+i+' ('+before+')');
-              await page.evaluate(()=>document.body && document.body.offsetHeight);
+              if(before===after)throw new Error('Toggle label did not change: '+name+' ('+before+')');
+              await page.evaluate(()=>({h:document.body.offsetHeight,ready:document.readyState}));
               await b.click({timeout:3000});
-              await page.waitForTimeout(120);
+              await page.waitForTimeout(150);
+              b=page.locator(selector).first();
               const back=(await b.textContent()||'').trim();
-              if(back!==before)throw new Error('Toggle did not restore at index '+i+' '+before+' -> '+after+' -> '+back);
+              if(back!==before)throw new Error('Toggle did not restore: '+name+' '+before+' -> '+after+' -> '+back);
+              console.log('PASS toggle '+name+' '+before+' -> '+after+' -> '+back);
             }
+            await testToggle('[data-flow-toggle]','flow');
+            await testToggle('[data-v142-collapse^="today:"]','today');
+            await testToggle('[data-v142-collapse^="kpi:"]','kpi');
+            await testToggle('[data-v142-collapse^="card:"]','card');
+            await testToggle('[data-v142-dashboard]','dashboard');
 
             const q=page.locator('#quickFind');
             await q.click({timeout:3000});
@@ -60,7 +64,7 @@ jobs:
             await page.keyboard.press('Escape');
             await page.waitForTimeout(150);
             if(errors.length)throw new Error(errors.join(' | '));
-            console.log('PASS toggle-count='+count+' tested='+tested+' no-page-errors');
+            console.log('PASS all collapse toggles + search responsive + no-page-errors');
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
