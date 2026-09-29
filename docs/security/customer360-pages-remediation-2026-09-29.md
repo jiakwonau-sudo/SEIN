@@ -36,3 +36,15 @@ The remediation now loads `customer360-migration.v1.5.1.js` **before** `app.full
 - If audit evidence shows a later administrator import, that administrator-imported state is preserved and only the retired legacy marker is removed.
 - Browsers without the legacy marker are untouched.
 - Tests use synthetic records only.
+
+
+## Legacy remediation v1.5.2
+Follow-up review hardened the browser cleanup further:
+- Treats later `CUSTOMER_CREATE`, `CUSTOMER_UPDATE`, `CUSTOMER_DELETE`, `CUSTOMER_BLOCK_TOGGLE`, `CUSTOMER_IMPORT`, and `CUSTOMER360_IMPORT` audit events as evidence of legitimate post-seed work. In that case the browser-local customer state is preserved to avoid destructive data loss.
+- The legacy seed marker is removed only after IndexedDB deletion reports success.
+- A blocked or failed IndexedDB deletion keeps the seed marker so the next load retries, and Customer 360 memo reads/imports fail closed until cleanup is safe.
+- The migration promise is consumed by the Customer 360 memo DB adapter, preventing a race with the asynchronous IndexedDB deletion.
+- Tests remain synthetic-only and now cover post-seed CRUD/import preservation plus blocked/error deletion retries.
+
+### Privacy trade-off
+If a browser contains both the retired seed and documented later customer work, the full local browser state is preserved because this legacy format has no reliable per-record provenance. The server/public Pages exposure remains blocked; this preservation rule avoids silently deleting legitimate user work.
