@@ -30,10 +30,31 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Build public Pages artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .pages-public
+          mkdir -p .pages-public
+          cp -a site/. .pages-public/
+
+          # Defense in depth: customer snapshots are local-only and must never ship to Pages.
+          rm -rf .pages-public/full/data/customer360
+
+          if test -e .pages-public/full/data/customer360; then
+            echo "ERROR: Customer 360 data directory is still present in Pages artifact."
+            exit 1
+          fi
+
+          if find .pages-public -type f \( -name 'customers-*.json' -o -name 'memos-*.json' -o -name 'workspace-core.json' \) -print -quit | grep -q .; then
+            echo "ERROR: Customer snapshot payload detected in Pages artifact."
+            exit 1
+          fi
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ./site
+          path: ./.pages-public
 
       - name: Deploy to GitHub Pages
         id: deployment

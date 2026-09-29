@@ -5,6 +5,8 @@ on:
     branches: ["main"]
     paths:
       - "site/**"
+      - "scripts/verify-customer360-security.mjs"
+      - ".github/workflows/pages.yml"
       - ".github/workflows/verify-pages.yml"
   workflow_dispatch:
 
@@ -17,10 +19,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check source preview JavaScript syntax
+      - name: Check JavaScript syntax
         shell: bash
         run: |
+          set -euo pipefail
           node --check site/v1-6-0-source/app.js
+          node --check site/full/customer.v1.5.0.js
+
+      - name: Verify Customer 360 security boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e site/full/data/customer360
+          node scripts/verify-customer360-security.mjs
 
       - name: Check published SEIN versions
         shell: bash
@@ -36,6 +47,22 @@ jobs:
             grep -F "$marker" "$tmp" >/dev/null
           }
 
+          check_absent() {
+            url="$1"
+            tmp="$(mktemp)"
+            for attempt in $(seq 1 60); do
+              code="$(curl -L -sS -o "$tmp" -w '%{http_code}' "$url" || true)"
+              if [ "$code" = "404" ]; then
+                echo "$url HTTP=404 (not published)"
+                return 0
+              fi
+              echo "$url still HTTP=$code; waiting for sanitized Pages deploy ($attempt/60)"
+              sleep 5
+            done
+            echo "ERROR: restricted Customer 360 path remained publicly reachable."
+            return 1
+          }
+
           BASE="https://jiakwonau-sudo.github.io/SEIN"
           check "$BASE/" "v1.6.0 SOURCE PARITY"
           check "$BASE/full/" "FULL v1.5.0"
@@ -46,6 +73,8 @@ jobs:
           check "$BASE/v1-6-0-source/app.js?v=162" "판매 수익 통계"
           check "$BASE/v1-6-0-source/app.js?v=162" "오늘의 일정"
           check "$BASE/v1-6-0-source/private-data.json?v=160" "PBKDF2-SHA256/AES-256-GCM+gzip"
+          check_absent "$BASE/full/data/customer360/manifest.json"
+          check_absent "$BASE/full/data/customer360/customers-001.json"
 
           {
             echo "# SEIN Pages Verification"
@@ -53,6 +82,8 @@ jobs:
             echo "- Status: PASS"
             echo "- Current release: v1.5.0-full"
             echo "- Source parity preview: v1.6.0-source-parity"
+            echo "- Customer 360 public payload: BLOCKED (404 verified)"
+            echo "- Customer 360 data mode: local admin import + browser-local storage"
             echo "- Commit: $GITHUB_SHA"
             echo "- Verified at: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             echo "- Current: https://jiakwonau-sudo.github.io/SEIN/full/"

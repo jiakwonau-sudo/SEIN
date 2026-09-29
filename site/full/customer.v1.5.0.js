@@ -1,6 +1,7 @@
 /* SEIN customer benchmark layer v1.5.0
  * Benchmarked from sein-source-customers-2026-09-28.
- * Customer data snapshot from sein-source-customers-2026-09-28 is bundled with this deployed version.
+ * Security boundary: customer source snapshots are never bundled into the public deployment.
+ * Authorized admins may import a local JSON/GZIP snapshot; imported data stays in browser-local storage.
  */
 (function(){
 'use strict';
@@ -9,8 +10,6 @@ const PAGE_SIZE=30;
 const MEMO_DB='sein-customer360';
 const MEMO_STORE='customer-memos';
 const UI_KEY='sein.customer360.ui.v1';
-const DATA_ROOT='./data/customer360';
-const DATA_SEED_KEY='sein.customer360.seed.2026-09-28';
 const DEFAULT_COLUMNS=['importance','group','department','phone','email','interest','date','receive','memo'];
 const COLS={
   importance:'중요도',group:'그룹 / 고객 구분',department:'부서 / 직함',phone:'전화번호',email:'이메일',interest:'주요 취급품목',date:'등록일',receive:'수신 여부',memo:'메모'
@@ -89,7 +88,7 @@ window.pageCustomer=function(){
   </div>
   <div class="card c360-card"><div class="tbl-wrap"><table class="tbl c360-table"><thead><tr><th class="checkbox-cell"><input type="checkbox" id="chkAll" aria-label="현재 페이지 전체 선택"></th>${sortTh('company','회사명')}${sortTh('person','담당자명')}${sortTh('country','국가')}${visible('importance')?sortTh('importance','중요도'):''}${visible('group')?sortTh('group','그룹 / 구분'):''}${visible('department')?sortTh('department','부서 / 직함'):''}${visible('phone')?sortTh('phone','전화번호'):''}${visible('email')?sortTh('email','이메일'):''}${visible('interest')?sortTh('interest','주요 취급품목'):''}${visible('date')?sortTh('date','등록일'):''}${visible('receive')?sortTh('receive','수신 여부'):''}${visible('memo')?sortTh('memo','메모'):''}</tr></thead><tbody>${slice.length?slice.map(c=>rowHtml(c)).join(''):`<tr><td colspan="14" class="c360-empty">조건에 맞는 고객이 없습니다.</td></tr>`}</tbody></table></div></div>
   <div class="c360-foot"><span>검색 결과 <b>${rows.length.toLocaleString()}</b>개 · 페이지 ${ui.page}/${pages}</span><div><button class="btn xs" id="c360Prev" ${ui.page<=1?'disabled':''}>이전</button><button class="btn xs" id="c360Next" ${ui.page>=pages?'disabled':''}>다음</button></div></div>
-  <div class="c360-privacy">첨부 원본 고객 데이터 스냅샷이 이 버전에 포함되어 자동 로드됩니다 · 고객 1,753건 · 메모 3,075건.</div>`;
+  <div class="c360-privacy">민감 고객 데이터는 공개 배포본에 포함되지 않습니다 · 관리자가 로컬 JSON/GZIP 파일을 가져오면 이 브라우저의 로컬 저장소에만 보관됩니다.</div>`;
 };
 
 function rowHtml(c){
@@ -139,44 +138,7 @@ function openMemoDb(){return new Promise((resolve,reject)=>{const req=indexedDB.
 async function putMemoPayload(memos){const groups=new Map();for(const m of memos){if(m?.targetType&&m.targetType!=='customers')continue;const id=m.targetId||m.customerId;if(!id)continue;if(!groups.has(id))groups.set(id,[]);groups.get(id).push(m)}const db=await openMemoDb();await new Promise((resolve,reject)=>{const tx=db.transaction(MEMO_STORE,'readwrite'),st=tx.objectStore(MEMO_STORE);st.clear();for(const [id,list] of groups)st.put(list,String(id));tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
 async function getMemos(id){try{const db=await openMemoDb();return await new Promise((resolve,reject)=>{const req=db.transaction(MEMO_STORE).objectStore(MEMO_STORE).get(String(id));req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error)})}catch{return []}}
 
-async function autoLoadBundledData(){
-  try{
-    const marker=localStorage.getItem(DATA_SEED_KEY);
-    if(marker==='1753:3075' && CUSTOMERS.length>1000)return;
-    const mr=await fetch(`${DATA_ROOT}/manifest.json`,{cache:'no-store'});
-    if(!mr.ok)throw new Error(`manifest HTTP ${mr.status}`);
-    const manifest=await mr.json();
-    const load=async names=>{
-      const parts=[];
-      for(const name of names||[]){
-        const r=await fetch(`${DATA_ROOT}/${name}`,{cache:'no-store'});
-        if(!r.ok)throw new Error(`${name} HTTP ${r.status}`);
-        parts.push(await r.json());
-      }
-      return parts.flat();
-    };
-    const customers=await load(manifest.customerFiles);
-    const memos=await load(manifest.memoFiles);
-    if(customers.length!==Number(manifest.customerCount||customers.length))throw new Error('customer count mismatch');
-    if(memos.length!==Number(manifest.memoCount||memos.length))throw new Error('memo count mismatch');
-    const mapped=mapPayload({customers,memos});
-    await putMemoPayload(mapped.memos);
-    CUSTOMERS.splice(0,CUSTOMERS.length,...mapped.customers);
-    selected.clear();
-    ui={...ui,q:'',country:'',group:'',status:'',email:'',origin:'legacy',page:1};
-    saveUi();
-    localStorage.setItem(DATA_SEED_KEY,`${mapped.customers.length}:${mapped.memos.length}`);
-    api().saveAll?.(false);
-    api().log?.('CUSTOMER360_BUNDLED_SEED',`${mapped.customers.length} customers / ${mapped.memos.length} memos`);
-    if(window.state?.page==='customer')api().render?.();
-  }catch(e){
-    console.error('Customer 360 bundled data load failed',e);
-    api().toast?.(`고객 원본 데이터 자동 로드 실패: ${e.message}`);
-  }
-}
-
-window.SEIN_CUSTOMER360={version:VERSION,mapPayload,stats,filtered,getMemos};
-setTimeout(autoLoadBundledData,0);
+window.SEIN_CUSTOMER360={version:VERSION,importMode:'local-file',mapPayload,stats,filtered,getMemos};
 
 // Repaint once after the layer loads so a restored customer page immediately uses Customer 360.
 try{if(window.state?.page==='customer')api().render?.()}catch{}
