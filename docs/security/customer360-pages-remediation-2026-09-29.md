@@ -26,3 +26,13 @@ After merge to `main`, `.github/workflows/verify-pages.yml` verifies that:
 
 ## Residual risk
 Because the repository is public, deleting the files from the current tree does **not** purge copies from historical commits. A separate history rewrite / exposure-response decision is required if historical Git object access must also be eliminated.
+
+
+## Legacy browser-state remediation
+A follow-up P1 review identified that browsers which loaded the retired public snapshot could retain that customer state in localStorage/IndexedDB after the server-side payload was removed.
+
+The remediation now loads `customer360-migration.v1.5.1.js` **before** `app.full.js` hydration:
+- If the legacy auto-seed marker exists and there is no later administrator import in the audit trail, stored customer state is cleared and the Customer 360 memo IndexedDB is deleted.
+- If audit evidence shows a later administrator import, that administrator-imported state is preserved and only the retired legacy marker is removed.
+- Browsers without the legacy marker are untouched.
+- Tests use synthetic records only.
