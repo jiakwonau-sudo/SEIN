@@ -42,7 +42,8 @@ jobs:
           check "$BASE/v1-5-0-full/" "FULL v1.5.0"
           check "$BASE/v1-6-0-source/" "SOURCE PARITY"
           check "$BASE/v1-6-0-source/app.js?v=162" "설비 현황과 영업 실적을 한눈에 확인하세요."
-          check "$BASE/v1-6-0-source/app.js?v=162" "tileboard"\n          check "$BASE/v1-6-0-source/app.js?v=162" "판매 수익 통계"
+          check "$BASE/v1-6-0-source/app.js?v=162" "tileboard"
+          check "$BASE/v1-6-0-source/app.js?v=162" "판매 수익 통계"
           check "$BASE/v1-6-0-source/app.js?v=162" "오늘의 일정"
           check "$BASE/v1-6-0-source/private-data.json?v=160" "PBKDF2-SHA256/AES-256-GCM+gzip"
 
