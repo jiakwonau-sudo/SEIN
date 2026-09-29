@@ -20,43 +20,41 @@ function dashboard(){
  const monthOpts='<option value="year" '+(p==='year'?'selected':'')+'>연간 종합</option><option value="ytd" '+(p==='ytd'?'selected':'')+'>1월~'+Number(month)+'월 종합</option>'+Array.from({length:12},(_,i)=>{const n=12-i,v=String(n).padStart(2,'0');return '<option value="'+v+'" '+(p===v?'selected':'')+'>'+n+'월</option>'}).join('');
  const note=localStorage.getItem('sein.dashboard.note.v160')||'';
  const stages=['공장','항구 이동','선적 전','선적 후','수입 완료','창고 입고'];
+ const kpi=(title,value,unit,desc,tone,icon)=>'<article class="dash-tile tile-kpi"><div class="tile-kpi-top"><span>'+title+'</span><i class="'+tone+'">'+icon+'</i></div><strong>'+value+'<small>'+unit+'</small></strong><p>'+desc+'</p></article>';
  return head('대시보드','설비 현황과 영업 실적을 한눈에 확인하세요.',
    '<select class="dash-select" id="dashYear" aria-label="실적 조회 연도">'+yearOpts+'</select>'+
    '<select class="dash-select" id="dashPeriod" aria-label="실적 조회 기간">'+monthOpts+'</select>'+
    '<button class="btn" id="dashExcel">⇩ 엑셀 내려받기</button>'+
    '<button class="btn primary" id="dashDeals">↗ 영업 내역</button>')+
- '<section class="dashboard-exchange" aria-label="오늘의 환율">'+
-   '<div class="dashboard-exchange-title"><span class="dash-icon">₩</span><div><strong>오늘의 환율</strong><small id="rateMeta">한국 원화(KRW) 기준 · 환율 불러오는 중…</small></div></div>'+
-   '<div class="dashboard-exchange-rates"><div><span>🇺🇸 미국 USD</span><strong id="usdRate">—</strong></div><div><span>🇯🇵 일본 JPY</span><strong id="jpyRate">—</strong></div></div>'+
-   '<button class="btn sm" id="rateRefresh">↻ 새로고침</button>'+
- '</section>'+
- '<div class="mission-pending">'+
-   '<button id="pendingBuy"><span>매입진행중</span><strong>0건 · 0원</strong><small>현재 협의중 · 공급가액</small></button>'+
-   '<button id="pendingSale"><span>판매진행중</span><strong>0건 · 0원</strong><small>현재 제안중 · 공급가액 · 중복 제안 포함</small></button>'+
- '</div>'+
- '<div class="kpi-grid">'+
-   '<div class="dash-kpi"><div class="kpi-top"><span>'+periodLabel+' 판매 확정</span><span class="kpi-icon violet">◇</span></div><div class="kpi-value">0<small>건</small></div><p>묶음 거래는 1건으로 집계</p></div>'+
-   '<div class="dash-kpi"><div class="kpi-top"><span>매입가 합계</span><span class="kpi-icon blue">▣</span></div><div class="kpi-value">0<small>만원</small></div><p>확정 건 매입 원가</p></div>'+
-   '<div class="dash-kpi"><div class="kpi-top"><span>판매가 합계</span><span class="kpi-icon blue">₩</span></div><div class="kpi-value">0<small>만원</small></div><p>부가세 제외 공급가액</p></div>'+
-   '<div class="dash-kpi"><div class="kpi-top"><span>확정 수익</span><span class="kpi-icon green">↗</span></div><div class="kpi-value positive">0<small>만원</small></div><p>판매 금액 − 매입 금액</p></div>'+
-   '<div class="dash-kpi"><div class="kpi-top"><span>건당 평균 수익</span><span class="kpi-icon amber">▤</span></div><div class="kpi-value">0<small>만원</small></div><p>확정 거래 기준 평균</p></div>'+
- '</div>'+
- '<div class="panel"><div class="panelhead"><h3>'+periodLabel+' 확정 · 현재 진행 중 영업</h3><button class="text-button" id="salesView">영업 관리에서 보기 →</button></div>'+
-   '<div class="tablewrap dash-sales"><table><thead><tr><th>영업 건 / 고객사</th><th>설비</th><th class="num">매입가</th><th class="num">판매가</th><th class="num">수익</th><th>상태</th></tr></thead><tbody></tbody></table><div class="quiet-empty">표시할 판매 현황이 없습니다.</div></div>'+
- '</div>'+
- '<div class="dashboard-middle">'+
-   '<div class="panel"><div class="panelhead"><h3>판매 수익 통계</h3></div><div class="dashboard-profit-stats">'+
-     '<div><span>확정 건 평균 수익</span><strong>0원</strong></div><div><span>평균 수익률</span><strong>0.0%</strong></div><div><span>최고 수익 건</span><strong>0원</strong></div><div><span>평균 리드타임</span><strong>0일</strong></div><div><span>진행 중 영업 건</span><strong>0건</strong></div>'+
-   '</div></div>'+
-   '<div class="panel"><div class="panelhead"><h3>설비 상태 분포</h3><span class="subtle">총 0대</span></div><div class="stage-list">'+
+ '<div class="tileboard">'+
+   '<section class="dash-tile tile-rate span-6" aria-label="오늘의 환율">'+
+     '<div class="tile-title"><span class="tile-symbol">₩</span><div><b>오늘의 환율</b><small id="rateMeta">한국 원화(KRW) 기준 · 환율 불러오는 중…</small></div></div>'+
+     '<div class="rate-pair"><div><span>🇺🇸 USD</span><strong id="usdRate">—</strong></div><div><span>🇯🇵 JPY</span><strong id="jpyRate">—</strong></div></div>'+
+     '<button class="tile-link" id="rateRefresh">↻ 새로고침</button>'+
+   '</section>'+
+   '<button class="dash-tile tile-pending span-2 buy" id="pendingBuy"><span>매입 진행중</span><strong>0<small>건</small></strong><p>협의중 · 공급가액 0원</p><i>→</i></button>'+
+   '<button class="dash-tile tile-pending span-2 sale" id="pendingSale"><span>판매 진행중</span><strong>0<small>건</small></strong><p>제안중 · 공급가액 0원</p><i>→</i></button>'+
+   kpi(periodLabel+' 판매 확정','0','건','묶음 거래는 1건으로 집계','violet','◇')+
+   kpi('매입가 합계','0','만원','확정 건 매입 원가','blue','▣')+
+   kpi('판매가 합계','0','만원','부가세 제외 공급가액','blue','₩')+
+   kpi('확정 수익','0','만원','판매 금액 − 매입 금액','green','↗')+
+   kpi('건당 평균 수익','0','만원','확정 거래 기준 평균','amber','▤')+
+   '<section class="dash-tile tile-sales span-6"><div class="tile-head"><div><b>'+periodLabel+' 확정 · 진행 영업</b><small>영업 건별 수익과 상태</small></div><button class="tile-link" id="salesView">영업 관리 →</button></div>'+
+     '<div class="tile-table"><table><thead><tr><th>영업 건 / 고객사</th><th>설비</th><th class="num">매입가</th><th class="num">판매가</th><th class="num">수익</th><th>상태</th></tr></thead><tbody></tbody></table><div class="tile-empty">표시할 판매 현황이 없습니다.</div></div>'+
+   '</section>'+
+   '<section class="dash-tile tile-profit span-4"><div class="tile-head"><div><b>판매 수익 통계</b><small>확정 영업 기준</small></div></div><div class="profit-matrix">'+
+     '<div><span>평균 수익</span><strong>0원</strong></div><div><span>평균 수익률</span><strong>0.0%</strong></div><div><span>최고 수익</span><strong>0원</strong></div><div><span>평균 리드타임</span><strong>0일</strong></div><div class="wide"><span>진행 중 영업</span><strong>0건</strong></div>'+
+   '</div></section>'+
+   '<section class="dash-tile tile-stage span-4"><div class="tile-head"><div><b>설비 상태 분포</b><small>총 0대</small></div><button class="tile-link" data-page="equipment">상품 관리 →</button></div><div class="stage-list">'+
      stages.map((s,i)=>'<button data-page="equipment"><span class="stage-dot stage-'+i+'"></span><span>'+s+'</span><div class="stage-track"><i class="stage-'+i+'" style="width:0%"></i></div><b>0<small>대</small></b></button>').join('')+
-   '</div></div>'+
+   '</div></section>'+
+   '<section class="dash-tile tile-activity span-3"><div class="tile-head"><div><b>최근 활동</b><small>업무 변경 기록</small></div></div><div class="tile-empty compact">최근 활동이 없습니다.</div></section>'+
+   '<section class="dash-tile tile-calendar span-3"><div class="tile-head"><div><b>오늘의 일정</b><small>'+now.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})+'</small></div><button class="tile-link" id="calendarView">캘린더 →</button></div><div class="calendar-zero"><span>▦</span><b>0</b><small>예정된 일정</small></div></section>'+
+   '<section class="dash-tile tile-note span-5"><div class="tile-head"><div><b>특이사항 메모</b><small>선적·통관·현장 일정 공유</small></div></div><textarea id="dashNote" maxlength="2000" placeholder="특이사항을 입력하세요.">'+esc(note)+'</textarea><div class="note-foot"><small id="dashNoteState">'+(note?'이 브라우저에 저장된 프리뷰 메모입니다.':'아직 등록된 특이사항이 없습니다.')+'</small><button class="btn sm primary" id="dashNoteSave">저장</button></div></section>'+
+   '<section class="dash-tile tile-shortcuts span-5"><div class="tile-head"><div><b>업무 바로가기</b><small>자주 쓰는 메뉴</small></div></div><div class="shortcut-grid">'+
+     [['equipment','상품 관리','▣'],['quotes','견적 관리','▤'],['deals','영업 관리','◇'],['customers','고객 관리','♙'],['accounting','회계 관리','▥'],['calendar','캘린더','▦']].map(([k,l,i])=>'<button data-page="'+k+'"><span>'+i+'</span><b>'+l+'</b><i>→</i></button>').join('')+
+   '</div></section>'+
  '</div>'+
- '<div class="dashboard-middle">'+
-   '<div class="panel activity-panel"><div class="panelhead"><h3>최근 활동</h3></div><div class="dashboard-activity"><p class="quiet-empty">최근 활동이 없습니다.</p></div></div>'+
-   '<div class="panel"><div class="panelhead"><h3>특이사항 메모</h3></div><div class="dashboard-special-note"><textarea id="dashNote" rows="5" maxlength="2000" placeholder="선적·통관·현장 일정 등 모두가 확인할 특이사항을 입력하세요.">'+esc(note)+'</textarea><div><small id="dashNoteState">'+(note?'이 브라우저에 저장된 프리뷰 메모입니다.':'아직 등록된 특이사항이 없습니다.')+'</small><button class="btn sm primary" id="dashNoteSave">저장</button></div></div></div>'+
- '</div>'+
- '<div class="dashboard-calendar-only"><div class="panel"><div class="panelhead"><h3>오늘의 일정</h3><button class="text-button" id="calendarView">캘린더 →</button></div><div class="today-date">▦ '+now.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})+'</div><p class="quiet-empty">오늘 예정된 일정이 없습니다.</p></div></div>'+
  '<div class="dashboard-note">조회 가능한 데이터 기준 · 원화 / 부가세 제외 · 부대비용은 수익에서 차감하지 않습니다.</div>';
 }
 async function loadDashboardRates(){
