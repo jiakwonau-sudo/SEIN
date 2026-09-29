@@ -48,3 +48,12 @@ Follow-up review hardened the browser cleanup further:
 
 ### Privacy trade-off
 If a browser contains both the retired seed and documented later customer work, the full local browser state is preserved because this legacy format has no reliable per-record provenance. The server/public Pages exposure remains blocked; this preservation rule avoids silently deleting legitimate user work.
+
+
+## Legacy remediation v1.5.3
+Final hardening after PR #8 code review:
+- Corrected the verification workflow so each JavaScript syntax check is a separate shell command.
+- Corrected the fetch-detection regular expression so the Node security smoke script parses and runs.
+- Customer 360 now treats a missing migration-readiness promise as unsafe rather than silently opening IndexedDB.
+- The migration establishes a fail-closed readiness result before its first localStorage read, so storage-access exceptions cannot expose the retired memo database.
+- Cache keys were advanced for both the migration and Customer 360 scripts.

@@ -4,7 +4,7 @@ import vm from 'node:vm';
 
 const customerPath='site/full/customer.v1.5.0.js';
 const appPath='site/full/app.full.js';
-const migrationPath='site/full/customer360-migration.v1.5.2.js';
+const migrationPath='site/full/customer360-migration.v1.5.3.js';
 const indexPath='site/full/index.html';
 
 const customerSource=fs.readFileSync(customerPath,'utf8');
@@ -12,7 +12,7 @@ const appSource=fs.readFileSync(appPath,'utf8');
 const migrationSource=fs.readFileSync(migrationPath,'utf8');
 const indexSource=fs.readFileSync(indexPath,'utf8');
 
-assert.equal(/\\bfetch\\s*\\(/.test(customerSource),false,'Customer 360 must not fetch bundled public data');
+assert.equal(/\bfetch\s*\(/.test(customerSource),false,'Customer 360 must not fetch bundled public data');
 assert.equal(/DATA_ROOT|DATA_SEED_KEY|autoLoadBundledData|CUSTOMER360_BUNDLED_SEED/.test(customerSource),false,'Bundled data loader markers must be absent');
 assert.ok(customerSource.includes('async function importPackage(file)'),'Local import handler must remain');
 assert.ok(customerSource.includes("inp.type='file'"),'Local file picker must remain');
@@ -75,8 +75,14 @@ const gatedMemos=await api.getMemos('SYN-1');
 assert.equal(gatedMemos.length,0,'Unsafe legacy memo DB must not be read');
 assert.equal(dbOpenCount,0,'IndexedDB must not open while cleanup is unsafe');
 
+delete sandbox.window.SEIN_CUSTOMER360_MIGRATION_READY;
+dbOpenCount=0;
+const absentReadyMemos=await api.getMemos('SYN-1');
+assert.equal(absentReadyMemos.length,0,'Readiness absence must fail closed');
+assert.equal(dbOpenCount,0,'IndexedDB must not open when migration readiness is unavailable');
+
 assert.ok(
-  indexSource.indexOf('./customer360-migration.v1.5.2.js?v=152') <
+  indexSource.indexOf('./customer360-migration.v1.5.3.js?v=153') <
   indexSource.indexOf('./app.full.js'),
   'Legacy seed remediation must run before app hydration'
 );
@@ -176,6 +182,21 @@ const untouched=await runMigration({
 assert.equal(untouched.state.customers.length,1,'Browsers without the legacy marker must be untouched');
 assert.equal(untouched.result.outcome,'not-needed');
 assert.equal(untouched.requests.length,0);
+
+const throwingContext={
+  window:{},
+  localStorage:{
+    getItem(){throw new Error('synthetic storage read failure')},
+    setItem(){},
+    removeItem(){}
+  },
+  indexedDB:{deleteDatabase(){throw new Error('must not be reached')}},
+  console:{log(){},warn(){},error(){}}
+};
+vm.createContext(throwingContext);
+vm.runInContext(migrationSource,throwingContext,{filename:migrationPath});
+const throwingReady=await throwingContext.window.SEIN_CUSTOMER360_MIGRATION_READY;
+assert.equal(throwingReady.memoSafe,false,'Marker read failure must keep memo DB unsafe');
 
 console.log('Customer 360 security smoke: PASS');
 console.log('Customer 360 legacy seed migration smoke: PASS');

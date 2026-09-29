@@ -24,7 +24,8 @@ jobs:
         run: |
           set -euo pipefail
           node --check site/v1-6-0-source/app.js
-          node --check site/full/customer.v1.5.0.js\n          node --check site/full/customer360-migration.v1.5.2.js
+          node --check site/full/customer.v1.5.0.js
+          node --check site/full/customer360-migration.v1.5.3.js
 
       - name: Verify Customer 360 security boundary
         shell: bash

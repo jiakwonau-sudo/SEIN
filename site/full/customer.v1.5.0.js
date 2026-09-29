@@ -135,8 +135,10 @@ function mapPayload(payload){
 }
 
 async function migrationReady(){
-  const result=await (window.SEIN_CUSTOMER360_MIGRATION_READY||Promise.resolve({outcome:'not-needed',memoSafe:true}));
-  if(result?.memoSafe===false)throw new Error('이전 공개 고객 메모 정리가 아직 끝나지 않았습니다. 다른 SEIN 탭을 닫고 새로고침해 주세요.');
+  const pending=window.SEIN_CUSTOMER360_MIGRATION_READY;
+  if(!pending)throw new Error('고객 데이터 보안 초기화가 실행되지 않았습니다. 새로고침해 주세요.');
+  const result=await pending;
+  if(result?.memoSafe!==true)throw new Error('이전 공개 고객 메모 정리가 아직 끝나지 않았습니다. 다른 SEIN 탭을 닫고 새로고침해 주세요.');
   return result;
 }
 async function openMemoDb(){await migrationReady();return await new Promise((resolve,reject)=>{const req=indexedDB.open(MEMO_DB,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(MEMO_STORE))req.result.createObjectStore(MEMO_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}

@@ -1,8 +1,6 @@
-/* Customer 360 legacy public-seed remediation v1.5.2
+/* Customer 360 legacy public-seed remediation v1.5.3
  * Runs before app.full.js hydrates browser state.
- * - Purges data attributable only to the retired public auto-seed.
- * - Preserves state when post-seed customer mutations/imports are recorded.
- * - Retires the legacy marker only after IndexedDB deletion actually succeeds.
+ * Fail-closed default: memo DB access is unsafe until this script explicitly proves otherwise.
  */
 (()=>{
 'use strict';
@@ -20,6 +18,12 @@ const CUSTOMER_MUTATIONS=new Set([
   'CUSTOMER_BLOCK_TOGGLE'
 ]);
 
+function setReady(value){
+  window.SEIN_CUSTOMER360_MIGRATION_READY=Promise.resolve(value);
+}
+function failClosed(outcome='migration-error'){
+  setReady({outcome,memoSafe:false});
+}
 function latestAuditAt(audit,predicate){
   let latest=0;
   for(const entry of Array.isArray(audit)?audit:[]){
@@ -29,12 +33,10 @@ function latestAuditAt(audit,predicate){
   }
   return latest;
 }
-
 function addAudit(data,action,detail){
   const audit=Array.isArray(data.audit)?data.audit:[];
   data.audit=[{at:new Date().toISOString(),user:'system',action,detail},...audit].slice(0,300);
 }
-
 function deleteMemoDb(){
   return new Promise((resolve,reject)=>{
     let req;
@@ -46,13 +48,20 @@ function deleteMemoDb(){
   });
 }
 
-function ready(value){
-  window.SEIN_CUSTOMER360_MIGRATION_READY=Promise.resolve(value);
+// Establish the security boundary before any storage access that could throw.
+failClosed('initializing');
+
+let legacyMarker;
+try{
+  legacyMarker=localStorage.getItem(LEGACY_SEED_KEY);
+}catch(error){
+  console.error('Customer 360 legacy seed marker read failed',error);
+  try{localStorage.setItem(MIGRATION_KEY,'migration-error')}catch{}
+  return;
 }
 
-const legacyMarker=localStorage.getItem(LEGACY_SEED_KEY);
 if(!legacyMarker){
-  ready({outcome:'not-needed',memoSafe:true});
+  setReady({outcome:'not-needed',memoSafe:true});
   return;
 }
 
@@ -63,7 +72,6 @@ try{
 }catch(error){
   console.error('Customer 360 legacy seed state parse failed',error);
   try{localStorage.setItem(MIGRATION_KEY,'migration-error')}catch{}
-  ready({outcome:'migration-error',memoSafe:false});
   return;
 }
 
@@ -74,22 +82,38 @@ if(data){
   const preservePostSeedWork=mutationAt>0&&(seedAt===0||mutationAt>seedAt);
 
   if(preservePostSeedWork){
-    addAudit(data,'CUSTOMER360_LEGACY_SEED_PRESERVE','Retired auto-seed marker removed; post-seed customer work preserved.');
-    localStorage.setItem(STORE_KEY,JSON.stringify(data));
-    localStorage.removeItem(LEGACY_SEED_KEY);
-    localStorage.setItem(MIGRATION_KEY,'preserved-post-seed-work');
-    ready({outcome:'preserved-post-seed-work',memoSafe:true});
+    try{
+      addAudit(data,'CUSTOMER360_LEGACY_SEED_PRESERVE','Retired auto-seed marker removed; post-seed customer work preserved.');
+      localStorage.setItem(STORE_KEY,JSON.stringify(data));
+      localStorage.removeItem(LEGACY_SEED_KEY);
+      localStorage.setItem(MIGRATION_KEY,'preserved-post-seed-work');
+      setReady({outcome:'preserved-post-seed-work',memoSafe:true});
+    }catch(error){
+      console.error('Customer 360 post-seed preservation failed',error);
+      try{localStorage.setItem(MIGRATION_KEY,'migration-error')}catch{}
+    }
     return;
   }
 
-  data.customers=[];
-  addAudit(data,'CUSTOMER360_LEGACY_SEED_PURGE','Removed customer state attributable to retired public auto-seed.');
-  localStorage.setItem(STORE_KEY,JSON.stringify(data));
+  try{
+    data.customers=[];
+    addAudit(data,'CUSTOMER360_LEGACY_SEED_PURGE','Removed customer state attributable to retired public auto-seed.');
+    localStorage.setItem(STORE_KEY,JSON.stringify(data));
+  }catch(error){
+    console.error('Customer 360 legacy customer purge failed',error);
+    try{localStorage.setItem(MIGRATION_KEY,'migration-error')}catch{}
+    return;
+  }
 }
 
 window.SEIN_CUSTOMER360_MIGRATION_READY=deleteMemoDb().then(()=>{
-  localStorage.removeItem(LEGACY_SEED_KEY);
-  localStorage.setItem(MIGRATION_KEY,data?'purged':'purged-empty-store');
+  try{
+    localStorage.removeItem(LEGACY_SEED_KEY);
+    localStorage.setItem(MIGRATION_KEY,data?'purged':'purged-empty-store');
+  }catch(error){
+    console.error('Customer 360 migration marker retirement failed',error);
+    return {outcome:'migration-error',memoSafe:false};
+  }
   return {outcome:data?'purged':'purged-empty-store',memoSafe:true};
 }).catch(error=>{
   console.error('Customer 360 legacy memo cleanup pending',error);
