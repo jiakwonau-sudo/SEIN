@@ -17,6 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check source preview JavaScript syntax
+        shell: bash
+        run: |
+          node --check site/v1-6-0-source/app.js
+
       - name: Check published SEIN versions
         shell: bash
         run: |
@@ -36,7 +41,9 @@ jobs:
           check "$BASE/full/" "FULL v1.5.0"
           check "$BASE/v1-5-0-full/" "FULL v1.5.0"
           check "$BASE/v1-6-0-source/" "SOURCE PARITY"
-          check "$BASE/v1-6-0-source/app.js?v=160" "13개 메뉴"
+          check "$BASE/v1-6-0-source/app.js?v=160" "설비 현황과 영업 실적을 한눈에 확인하세요."
+          check "$BASE/v1-6-0-source/app.js?v=160" "판매 수익 통계"
+          check "$BASE/v1-6-0-source/app.js?v=160" "오늘의 일정"
           check "$BASE/v1-6-0-source/private-data.json?v=160" "PBKDF2-SHA256/AES-256-GCM+gzip"
 
           {
