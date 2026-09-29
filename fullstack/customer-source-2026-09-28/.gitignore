@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.cache/
+.local/
+backups/
+test-results/
+*.log
+
+.local-ui-check/
+.codex-remote-attachments/
+references/
+outputs/
