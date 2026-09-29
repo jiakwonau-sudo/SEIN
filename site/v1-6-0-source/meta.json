@@ -1,0 +1,52 @@
+{
+  "release": "v1.6.0-source-parity",
+  "source": "sein-source-customers-2026-09-28.zip",
+  "customers": 1753,
+  "memos": 3075,
+  "equipment": 0,
+  "deals": 0,
+  "quotes": 0,
+  "files": 0,
+  "folders": 0,
+  "events": 0,
+  "sheets": 0,
+  "cashAccounts": 0,
+  "cashEntries": 0,
+  "categories": [
+    {
+      "id": "used",
+      "name": "중고 설비",
+      "type": "business",
+      "fixed": true,
+      "version": 1
+    },
+    {
+      "id": "asahi",
+      "name": "아사히 세이키",
+      "type": "drive",
+      "fixed": true,
+      "version": 1
+    }
+  ],
+  "tags": [
+    "확인 필요",
+    "견적 요청",
+    "물류",
+    "완료"
+  ],
+  "company": {
+    "name": "세인코퍼레이션",
+    "englishName": "SEIN CORPORATION",
+    "address": "",
+    "phone": "",
+    "email": ""
+  },
+  "users": [
+    {
+      "name": "로컬 관리자",
+      "role": "master",
+      "active": true
+    }
+  ],
+  "privacy": "Customer contacts and memo text are encrypted at rest in this public GitHub Pages snapshot."
+}
