@@ -4,14 +4,20 @@ on:
   push:
     branches: ["main"]
     paths:
+      - "site/**"
       - ".github/workflows/verify-pages.yml"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Check v1.4.4 published URLs and collapse assets
+      - uses: actions/checkout@v4
+
+      - name: Check v1.5.0 published URLs and Customer 360 assets
         shell: bash
         run: |
           set -euo pipefail
@@ -19,14 +25,37 @@ jobs:
             url="$1"
             marker="$2"
             tmp="$(mktemp)"
-            code="$(curl -L -sS --retry 8 --retry-delay 2 -o "$tmp" -w '%{http_code}' "$url")"
+            code="$(curl -L -sS --retry 15 --retry-delay 3 --retry-all-errors -o "$tmp" -w '%{http_code}' "$url")"
             echo "$url HTTP=$code"
             test "$code" = "200"
             grep -F "$marker" "$tmp" >/dev/null
           }
+
           BASE="https://jiakwonau-sudo.github.io/SEIN"
-          check "$BASE/full/" "FULL v1.4.4"
-          check "$BASE/v1-4-4-full/" "FULL v1.4.4"
-          check "$BASE/full/collapse.v1.4.4.css?v=144" "full section collapse"
-          check "$BASE/full/collapse.v1.4.4.js?v=144" "one collapse system"
-          check "$BASE/full/ux.v1.1.js?v=144" "작업흐름"
+          check "$BASE/" "v1.5.0 FULL"
+          check "$BASE/full/" "FULL v1.5.0"
+          check "$BASE/v1-5-0-full/" "FULL v1.5.0"
+          check "$BASE/full/customer.v1.5.0.js" "Customer 360"
+          check "$BASE/v1-5-0-full/customer.v1.5.0.js" "Customer 360"
+
+          {
+            echo "# SEIN Pages Verification"
+            echo
+            echo "- Status: PASS"
+            echo "- Release: v1.5.0-full"
+            echo "- Commit: $GITHUB_SHA"
+            echo "- Verified at: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo "- Current: https://jiakwonau-sudo.github.io/SEIN/full/"
+            echo "- Immutable: https://jiakwonau-sudo.github.io/SEIN/v1-5-0-full/"
+          } > .github/pages-status.md
+
+      - name: Record successful verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/pages-status.md
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: record v1.5.0 Pages verification"
+          git push
