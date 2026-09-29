@@ -3,3 +3,6 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# Customer 360 source snapshots are local-only and must never be committed.
+site/full/data/customer360/
