@@ -48,6 +48,15 @@ jobs:
             grep -F "$marker" "$tmp" >/dev/null
           }
 
+          check_200() {
+            url="$1"
+            tmp="$(mktemp)"
+            code="$(curl -L -sS --retry 40 --retry-delay 5 --retry-all-errors -o "$tmp" -w '%{http_code}' "$url")"
+            echo "$url HTTP=$code"
+            test "$code" = "200"
+            test -s "$tmp"
+          }
+
           check_absent() {
             url="$1"
             tmp="$(mktemp)"
@@ -65,10 +74,14 @@ jobs:
           }
 
           BASE="https://jiakwonau-sudo.github.io/SEIN"
-          check "$BASE/" "v1.6.0 SOURCE PARITY"
+          check "$BASE/" "v1.7.0 CRUD SANDBOX"
           check "$BASE/full/" "FULL v1.5.0"
           check "$BASE/v1-5-0-full/" "FULL v1.5.0"
-          check "$BASE/v1-6-0-source/" "SOURCE PARITY"\n          check "$BASE/v1-7-0-crud/" "SEIN CRUD Sandbox v1.7.0"\n          check "$BASE/v1-7-0-crud/app.js?v=170" "CRUD_SELFTEST_PASS"\n          check "$BASE/v1-7-0-crud/app.js?v=170" "JSON 내보내기"
+          check "$BASE/v1-6-0-source/" "SOURCE PARITY"
+          check "$BASE/v1-7-0-crud/" "SEIN CRUD Sandbox v1.7.0"
+          check "$BASE/v1-7-0-crud/app.js?v=170" "CRUD_SELFTEST_PASS"
+          check "$BASE/v1-7-0-crud/app.js?v=170" "JSON 내보내기"
+          check_200 "$BASE/v1-7-0-crud/SEIN_v1.7.0_CRUD_SANDBOX.zip"
           check "$BASE/v1-6-0-source/app.js?v=162" "설비 현황과 영업 실적을 한눈에 확인하세요."
           check "$BASE/v1-6-0-source/app.js?v=162" "tileboard"
           check "$BASE/v1-6-0-source/app.js?v=162" "판매 수익 통계"
