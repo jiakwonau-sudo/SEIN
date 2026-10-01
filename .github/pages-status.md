@@ -7,8 +7,8 @@
 - CRUD package: published ZIP
 - Customer 360 public payload: BLOCKED (404 verified)
 - Customer 360 data mode: local admin import + browser-local storage
-- Commit: c99f3008cf8febc296c5a5f831cb3b620b938b3e
-- Verified at: 2026-10-01T06:07:39Z
+- Commit: a8e58e66fe3e715062961284251c5d4cd365ffd8
+- Verified at: 2026-10-01T11:45:21Z
 - Current: https://jiakwonau-sudo.github.io/SEIN/full/
 - Source parity: https://jiakwonau-sudo.github.io/SEIN/v1-6-0-source/
 - CRUD sandbox: https://jiakwonau-sudo.github.io/SEIN/v1-7-0-crud/
