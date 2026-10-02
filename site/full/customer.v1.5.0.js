@@ -134,7 +134,14 @@ function mapPayload(payload){
   return {customers,memos};
 }
 
-function openMemoDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(MEMO_DB,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(MEMO_STORE))req.result.createObjectStore(MEMO_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+async function migrationReady(){
+  const pending=window.SEIN_CUSTOMER360_MIGRATION_READY;
+  if(!pending)throw new Error('고객 데이터 보안 초기화가 실행되지 않았습니다. 새로고침해 주세요.');
+  const result=await pending;
+  if(result?.memoSafe!==true)throw new Error('이전 공개 고객 메모 정리가 아직 끝나지 않았습니다. 다른 SEIN 탭을 닫고 새로고침해 주세요.');
+  return result;
+}
+async function openMemoDb(){await migrationReady();return await new Promise((resolve,reject)=>{const req=indexedDB.open(MEMO_DB,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(MEMO_STORE))req.result.createObjectStore(MEMO_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function putMemoPayload(memos){const groups=new Map();for(const m of memos){if(m?.targetType&&m.targetType!=='customers')continue;const id=m.targetId||m.customerId;if(!id)continue;if(!groups.has(id))groups.set(id,[]);groups.get(id).push(m)}const db=await openMemoDb();await new Promise((resolve,reject)=>{const tx=db.transaction(MEMO_STORE,'readwrite'),st=tx.objectStore(MEMO_STORE);st.clear();for(const [id,list] of groups)st.put(list,String(id));tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
 async function getMemos(id){try{const db=await openMemoDb();return await new Promise((resolve,reject)=>{const req=db.transaction(MEMO_STORE).objectStore(MEMO_STORE).get(String(id));req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error)})}catch{return []}}
 
