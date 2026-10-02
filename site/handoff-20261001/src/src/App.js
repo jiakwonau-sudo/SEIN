@@ -16,6 +16,46 @@ const Accounting = lazyPage(() => import("./Accounting.js"), "Accounting");
 const TaxPage = lazyPage(() => import("./Missions.js"), "TaxPage"), PurchasesPage = lazyPage(() => import("./Missions.js"), "PurchasesPage");
 const MailPage = lazyPage(() => import("./Mail.js"), "MailPage");
 const CalendarPage = lazyPage(workspace, "CalendarPage"), AccountingPage = lazyPage(workspace, "AccountingPage"), SettingsPage = lazyPage(workspace, "SettingsPage"), CategoryForm = lazyPage(workspace, "CategoryForm");
+
+function ViewDashboard({ page, state, category }) {
+    if (!state || page === "dashboard")
+        return null;
+    const count = (rows, fn = () => true) => (rows || []).filter(fn).length;
+    const sum = (rows, fn) => (rows || []).reduce((total, item) => total + Number(fn(item) || 0), 0);
+    const money = (value) => "₩" + new Intl.NumberFormat("ko-KR", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value || 0));
+    const today = new Date().toISOString().slice(0, 10);
+    const month = today.slice(0, 7);
+    const catEquipment = (state.equipment || []).filter((item) => item.categoryId === category?.id);
+    const catDeals = (state.deals || []).filter((item) => item.categoryId === category?.id);
+    const catPurchases = (state.purchases || []).filter((item) => item.categoryId === category?.id);
+    const catQuotes = (state.quotes || []).filter((quote) => catDeals.some((deal) => deal.id === quote.dealId));
+    const monthEntries = (state.cashEntries || []).filter((item) => !item.cancelled && item.date?.startsWith(month));
+    const income = sum(monthEntries.filter((item) => item.kind === "income"), (item) => item.amount);
+    const expense = sum(monthEntries.filter((item) => item.kind === "expense"), (item) => item.amount);
+    const sendable = count(state.customers, (customer) => !customer.blocked && (customer.contacts || []).some((person) => person.email));
+    const fileRows = (state.files || []).filter((item) => item.categoryId === category?.id && !item.deletedAt);
+    const metrics = {
+        equipment: [["전체 상품", catEquipment.length], ["영업 연결", count(catEquipment, (e) => catDeals.some((d) => d.status === "진행중" && (d.lines || []).some((l) => l.equipmentId === e.id)))], ["판매 확정", count(catEquipment, (e) => catDeals.some((d) => d.status === "확정" && (d.lines || []).some((l) => l.equipmentId === e.id && !l.cancelled)))], ["특별 상품", count(catEquipment, (e) => e.featured)]],
+        customers: [["전체 고객", (state.customers || []).length], ["발송 가능", sendable], ["송신 금지", count(state.customers, (c) => c.blocked)], ["Dealer", count(state.customers, (c) => c.kind === "Dealer")]],
+        deals: [["전체 영업", catDeals.length], ["진행중", count(catDeals, (d) => d.status === "진행중")], ["확정", count(catDeals, (d) => d.status === "확정")], ["확정 매출", money(sum(catDeals.filter((d) => d.status === "확정"), (d) => sum((d.lines || []).filter((l) => !l.cancelled), (l) => l.sellKrw ?? l.amount)))]],
+        quotes: [["보관 견적", catQuotes.length], ["진행중 영업 견적", count(catQuotes, (q) => catDeals.find((d) => d.id === q.dealId)?.status === "진행중")], ["확정 영업 견적", count(catQuotes, (q) => catDeals.find((d) => d.id === q.dealId)?.status === "확정")], ["국문 / 영문", count(catQuotes, (q) => q.language === "ko") + " / " + count(catQuotes, (q) => q.language === "en")]],
+        files: [["폴더", count(state.folders, (f) => f.categoryId === category?.id && !f.deletedAt)], ["파일", fileRows.length], ["준비 완료", count(fileRows, (f) => f.status === "ready")], ["용량", new Intl.NumberFormat("ko-KR", { notation: "compact" }).format(sum(fileRows, (f) => f.size)) + "B"]],
+        drive: [["폴더", count(state.folders, (f) => f.categoryId === category?.id && !f.deletedAt)], ["파일", fileRows.length], ["준비 완료", count(fileRows, (f) => f.status === "ready")], ["연결 자료", count(fileRows, (f) => f.targetId)]],
+        calendar: [["전체 일정", count(state.events, (e) => !e.deletedAt)], ["오늘 이후", count(state.events, (e) => !e.deletedAt && String(e.start || "").slice(0, 10) >= today)], ["종일 일정", count(state.events, (e) => e.allDay)], ["미확인 알림", count(state.notifications, (n) => !n.read)]],
+        accounting: [["자금 계좌", count(state.cashAccounts, (a) => a.active)], ["이번 달 수입", money(income)], ["이번 달 지출", money(expense)], ["이번 달 차액", money(income - expense)]],
+        tax: [["세금계산서 폴더", count(state.folders, (f) => f.categoryId === "tax-documents" && !f.deletedAt)], ["세금계산서 파일", count(state.files, (f) => f.categoryId === "tax-documents" && !f.deletedAt)], ["매입 확정", count(state.purchases, (p) => p.status === "확정")], ["회계 증빙 연결", count(state.cashEntries, (e) => (e.fileIds || []).length > 0)]],
+        purchases: [["전체 매입", catPurchases.length], ["진행중", count(catPurchases, (p) => p.status === "진행중")], ["확정", count(catPurchases, (p) => p.status === "확정")], ["확정 매입액", money(sum(catPurchases.filter((p) => p.status === "확정"), (p) => p.amount))]],
+        mail: [["메일 양식", (state.mailTemplates || []).length], ["발송 가능 고객", sendable], ["상품 후보", catEquipment.length], ["보관 파일", (state.files || []).length]],
+        tags: [["태그", (state.tags || []).length], ["메모", (state.memos || []).length], ["태그된 메모", count(state.memos, (m) => (m.tags || []).length > 0)], ["고객 그룹", new Set((state.customers || []).map((c) => c.groupName).filter(Boolean)).size]],
+        trash: [["휴지통", (state.trash || []).length], ["삭제 고객", count(state.trash, (x) => x.type === "customers")], ["삭제 상품", count(state.trash, (x) => x.type === "equipment")], ["삭제 파일", count(state.trash, (x) => x.type === "files")]],
+        settings: [["사용자", (state.users || []).length], ["활성 사용자", count(state.users, (u) => u.active)], ["업무 카테고리", (state.categories || []).length], ["변경 로그", (state.logs || []).length]]
+    }[page];
+    if (!metrics)
+        return null;
+    return React.createElement("div", { className: "mission-kpis view-dashboard", "aria-label": "현재 화면 요약" }, metrics.map(([label, value]) => React.createElement("div", { key: label },
+        React.createElement("small", null, label),
+        React.createElement("strong", null, value))));
+}
 class ScreenBoundary extends React.Component {
     state = { error: null };
     static getDerivedStateFromError(error) {
@@ -464,6 +504,7 @@ export default function App() {
                         error,
                         React.createElement(Button, { small: true, icon: RotateCw, onClick: reload }, "\uB2E4\uC2DC \uC2DC\uB3C4"))),
                     can(state.me, authMenu) ? (React.createElement(ScreenBoundary, { key: `${page}:${category.id}` },
+                        React.createElement(ViewDashboard, { page: page, state: state, category: category }),
                         React.createElement(React.Suspense, { fallback: screenLoading }, pages[page] || pages.dashboard))) : (React.createElement("div", { className: "empty" },
                         React.createElement(ShieldCheck, { size: 28 }),
                         React.createElement("h2", null, "\uC811\uADFC \uAD8C\uD55C\uC774 \uC5C6\uC2B5\uB2C8\uB2E4"),
