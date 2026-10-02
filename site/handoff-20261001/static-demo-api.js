@@ -95,7 +95,7 @@ function demoMeta(id, at) {
 }
 function applyCoverage(s) {
   s = ensureState(s);
-  if (Number(s.__coverageVersion || 0) >= 4) return false;
+  if (Number(s.__coverageVersion || 0) >= 5) return false;
   let changed = false;
 
   const fillers = DEMO_COVERAGE.syntheticCustomers.map(function(r, i){
@@ -109,7 +109,6 @@ function applyCoverage(s) {
     });
   });
   for (const row of fillers) {
-    if (s.customers.length >= 8) break;
     if (!s.customers.some(function(x){return x.id===row.id;})) { s.customers.push(row); changed=true; }
   }
 
@@ -194,7 +193,7 @@ function applyCoverage(s) {
     Object.keys(next).forEach(function(k){if(row[k]!==next[k]){row[k]=next[k];changed=true;}});
   });
 
-  const customers = s.customers.length ? s.customers : fillers;
+  const customers = s.customers.filter(function(x){ return /^demo-c-/.test(x.id); });
   const cid = function(n){ return customers[n % customers.length] && customers[n % customers.length].id; };
   const dealRows = DEMO_COVERAGE.dealBase.map(function(r, i){
     const id=r[0], name=r[1], status=r[2], rawLines=r[3], day=r[4];
@@ -340,7 +339,7 @@ function applyCoverage(s) {
   ];
   if(addMissingById(s.notifications,notifications)) changed=true;
 
-  s.__coverageVersion=4;
+  s.__coverageVersion=5;
   return true;
 }
 
