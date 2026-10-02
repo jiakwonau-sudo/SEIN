@@ -95,7 +95,7 @@ function demoMeta(id, at) {
 }
 function applyCoverage(s) {
   s = ensureState(s);
-  if (Number(s.__coverageVersion || 0) >= 3) return false;
+  if (Number(s.__coverageVersion || 0) >= 4) return false;
   let changed = false;
 
   const fillers = DEMO_COVERAGE.syntheticCustomers.map(function(r, i){
@@ -113,6 +113,38 @@ function applyCoverage(s) {
     if (!s.customers.some(function(x){return x.id===row.id;})) { s.customers.push(row); changed=true; }
   }
 
+  const customerExtras = [
+    ["demo-c-1","프레스","기계식 프레스","프레스","기계식 프레스","100","300"],
+    ["demo-c-2","머시닝센터","수직 머시닝센터","머시닝센터","수직 머시닝센터","0","0"],
+    ["demo-c-3","자동화","기타 자동화","프레스","기계식 프레스","80","250"],
+    ["demo-c-4","프레스","고속 프레스","프레스","고속 프레스","30","100"],
+    ["demo-c-5","프레스","기계식 프레스","프레스","고속 프레스","50","300"],
+    ["demo-c-6","프레스","기계식 프레스","프레스","기계식 프레스","100","500"],
+    ["demo-c-7","프레스","유압 프레스","프레스","유압 프레스","150","500"],
+    ["demo-c-8","NC선반","NC 선반","NC선반","복합가공기","0","0"]
+  ];
+  customerExtras.forEach(function(x,i){
+    const row=s.customers.find(function(r){return r.id===x[0];});
+    if(!row) return;
+    const next={
+      importance:row.importance||String((i%3)+1),registeredOn:row.registeredOn||("2026-0"+((i%8)+1)+"-0"+((i%9)+1)),
+      interestClass:x[1],interestSubclass:x[2],wantedClass:x[3],wantedSubclass:x[4],
+      wantedTonsMin:x[5],wantedTonsMax:x[6],productInterest:(row.productInterest||"")+" · "+x[1]+" / "+x[2],
+      note:(row.note||"")+" · 주요 연락·설비 관심·톤수 범위 입력 완료"
+    };
+    Object.keys(next).forEach(function(k){ if(row[k]!==next[k]){row[k]=next[k];changed=true;} });
+    if(Array.isArray(row.contacts)&&row.contacts[0]){
+      const p=row.contacts[0];
+      const phone=p.phone||("02-555-"+String(1100+i));
+      const email=p.email||("contact"+(i+1)+"@example.com");
+      const department=p.department||"구매팀";
+      const position=p.position||"Manager";
+      if(p.phone!==phone||p.email!==email||p.department!==department||p.position!==position){
+        Object.assign(p,{phone:phone,email:email,department:department,position:position});changed=true;
+      }
+    }
+  });
+
   const eqRows = DEMO_COVERAGE.equipmentBase.map(function(r, i){
     const id=r[0], maker=r[1], model=r[2], number=r[3], productClass=r[4], productSubclass=r[5], capacityTons=r[6], stage=r[7], buy=r[8], originCountry=r[9], storagePlace=r[10], inspectionStatus=r[11], testRunStatus=r[12], featured=r[13];
     return Object.assign({}, demoMeta(id, "2026-0"+((i%8)+1)+"-"+String((i%24)+1).padStart(2,"0")+"T09:00:00+09:00"), {
@@ -128,6 +160,39 @@ function applyCoverage(s) {
     });
   });
   if (addMissingById(s.equipment, eqRows)) changed=true;
+
+  const equipmentExtras = [
+    ["demo-eq-1",180,350,"Japan","양주 창고","현장도","양주","상차도","양주","계약금 30% / 잔금 출고 전"],
+    ["demo-eq-2",150,320,"Japan","인천 보세창고","FOB","Yokohama","상차도","인천","계약금 20% / 잔금 출고 전"],
+    ["demo-eq-3",140,300,"Japan","요코하마","현장도","Japan","CIF","Busan","T/T 50% + 50%"],
+    ["demo-eq-4",0,0,"Japan","부산항","FOB","Osaka","상차도","부산","계약금 30% / 잔금 검수 후"],
+    ["demo-eq-5",0,0,"Japan","양주 창고","현장도","Japan","상차도","양주","현금 / 협의"],
+    ["demo-eq-6",0,0,"Japan","오사카 공장","FOB","Osaka","CIF","Busan","T/T"],
+    ["demo-eq-7",40,220,"Japan","평택 창고","현장도","Japan","상차도","평택","계약금 30% / 잔금 출고 전"],
+    ["demo-eq-8",25,200,"Switzerland","독일 파트너 창고","EXW","Germany","FOB","Hamburg","T/T"],
+    ["demo-eq-9",50,260,"USA","미국 파트너 창고","EXW","USA","FOB","Long Beach","T/T"],
+    ["demo-eq-10",0,0,"Japan","부산항","FOB","Japan","상차도","부산","현금 / 협의"],
+    ["demo-eq-11",0,0,"Korea","양주 창고","상차도","양주","상차도","양주","계약금 30% / 잔금 출고 전"],
+    ["demo-eq-12",0,0,"Korea","창원 공장","현장도","창원","상차도","창원","현금 / 협의"]
+  ];
+  equipmentExtras.forEach(function(x,i){
+    const row=s.equipment.find(function(r){return r.id===x[0];});
+    if(!row) return;
+    const year=String(2008+(i%14)), month=String((i%12)+1).padStart(2,"0");
+    const next={
+      strokeMm:String(x[1]||""),dieHeightMm:String(x[2]||""),originCountry:x[3],equipmentLocation:x[4],
+      transactionImportance:String((i%3)+1),transactionCountry:x[3],
+      supplierId:row.supplierId||((s.customers[i%s.customers.length]||{}).id||""),introducedCustomerId:row.introducedCustomerId||((s.customers[(i+1)%s.customers.length]||{}).id||""),
+      purchaseTerms:x[5],purchasePlace:x[6],saleTerms:x[7],salePlace:x[8],paymentTerms:x[9],
+      askingCurrency:"KRW",listingStatus:row.listingStatus||"판매중",visibility:row.visibility||"노출",priceVisibility:"비노출",
+      advertisingNumbers:"DEMO-"+String(i+1).padStart(3,"0"),descriptionKo:(row.descriptionKo||row.note||"")+" · 데모 국문 상품설명",
+      descriptionEn:"Demo listing for "+row.maker+" "+row.model+". Inspected equipment for workflow testing.",
+      descriptionJa:"デモ商品 "+row.maker+" "+row.model+"。業務フロー確認用です。",
+      manufacturedYear:row.manufacturedYear||year,manufacturedMonth:row.manufacturedMonth||month,
+      storagePlace:row.storagePlace||x[4],inspectionStatus:row.inspectionStatus||"검수완료",testRunStatus:row.testRunStatus||"시운전완료"
+    };
+    Object.keys(next).forEach(function(k){if(row[k]!==next[k]){row[k]=next[k];changed=true;}});
+  });
 
   const customers = s.customers.length ? s.customers : fillers;
   const cid = function(n){ return customers[n % customers.length] && customers[n % customers.length].id; };
@@ -275,7 +340,7 @@ function applyCoverage(s) {
   ];
   if(addMissingById(s.notifications,notifications)) changed=true;
 
-  s.__coverageVersion=3;
+  s.__coverageVersion=4;
   return true;
 }
 
