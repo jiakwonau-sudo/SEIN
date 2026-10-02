@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>SEIN · 로컬 데이터 가져오기</title>
+<style>
+body{font-family:system-ui,-apple-system,sans-serif;max-width:720px;margin:40px auto;padding:0 20px;color:#111}
+.card{border:1px solid #ddd;border-radius:16px;padding:24px}
+h1{font-size:24px;margin:0 0 8px}
+p{line-height:1.55;color:#555}
+button,.pick{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;background:#111;color:#fff}
+input{display:none}
+.status{margin-top:18px;padding:14px;border-radius:10px;background:#f5f5f5;white-space:pre-wrap}
+.ok{background:#eefbf3}
+.err{background:#fff1f1}
+a{color:#065fd4}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>SEIN 로컬 데이터 가져오기</h1>
+  <p>선택한 JSON은 서버로 업로드하지 않고 이 브라우저의 IndexedDB에만 저장합니다. 기존 로컬 데이터는 유지하고 같은 ID는 중복 추가하지 않습니다.</p>
+  <label class="pick">가져올 JSON 선택<input id="file" type="file" accept=".json,application/json"></label>
+  <div id="status" class="status">JSON 파일을 선택하세요.</div>
+  <p><a href="./?page=customers&category=used">고객 관리로 돌아가기</a></p>
+</div>
+<script>
+const DB="sein-handoff-local", STORE="kv", KEY="workspace";
+const status=document.getElementById("status");
+function openDb(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE)};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+async function getState(){const db=await openDb();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,"readonly");const r=tx.objectStore(STORE).get(KEY);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error);tx.oncomplete=()=>db.close()})}
+async function putState(v){const db=await openDb();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,"readwrite");tx.objectStore(STORE).put(v,KEY);tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{const e=tx.error;db.close();reject(e)}})}
+function baseState(){const u={id:"demo-master",name:"로컬 관리자",email:"master@example.test",role:"master",active:true,version:1,permissions:{},searchPreferences:{recent:[],favorites:[]}};return{schema:1,company:{name:"세인코퍼레이션",englishName:"SEIN CORPORATION",address:"",phone:"",email:""},tags:[],categories:[{id:"used",name:"중고 설비",type:"business",fixed:true,version:1},{id:"asahi",name:"아사히 세이키",type:"drive",fixed:true,version:1}],users:[u],equipment:[],customers:[],deals:[],quotes:[],folders:[],files:[],memos:[],events:[],sheets:[],dashboardNotes:[],cashEntries:[],cashAccounts:[],cashCategories:[],purchases:[],mailTemplates:[],mailCampaigns:[],logs:[],notifications:[],jobs:[],storageLimitBytes:1000000000,__revision:1}}
+document.getElementById("file").addEventListener("change",async e=>{
+  try{
+    status.className="status"; status.textContent="확인 중…";
+    const f=e.target.files[0]; if(!f)return;
+    const pack=JSON.parse(await f.text());
+    if(!Array.isArray(pack.customers)||pack.customers.length!==20)throw new Error("고객 레코드가 정확히 20개인 파일이 아닙니다.");
+    const required=["id","name","contacts","blocked","kind","country","groupName","importance","registeredOn","productInterest","interestClass","interestSubclass","legacyInterests","note","legacySourceId","legacyConsent","legacyOrigin","legacyUrl","version","createdAt","updatedAt","createdBy","lock"];
+    for(const c of pack.customers){for(const k of required)if(!(k in c))throw new Error("완전하지 않은 고객 레코드가 있습니다: "+c.id+" / "+k)}
+    const s=(await getState())||baseState();
+    for(const k of ["customers","memos"])if(!Array.isArray(s[k]))s[k]=[];
+    const cids=new Set(s.customers.map(x=>x.id)), mids=new Set(s.memos.map(x=>x.id));
+    let cadd=0,madd=0;
+    for(const c of pack.customers)if(!cids.has(c.id)){s.customers.push(structuredClone(c));cids.add(c.id);cadd++}
+    for(const m of (pack.memos||[]))if(!mids.has(m.id)){s.memos.push(structuredClone(m));mids.add(m.id);madd++}
+    s.__revision=Number(s.__revision||0)+1;
+    await putState(s);
+    localStorage.setItem("sein_static_demo_session","1");
+    status.className="status ok";
+    status.textContent=`완료\n고객: ${cadd}건 추가 (파일 내 20건 검증)\n고객 메모: ${madd}건 추가\n저장 위치: 이 브라우저 IndexedDB`;
+  }catch(err){status.className="status err";status.textContent="실패: "+(err.message||err)}
+});
+</script>
+</body></html>
